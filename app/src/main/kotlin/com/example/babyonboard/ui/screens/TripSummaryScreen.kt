@@ -8,10 +8,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.babyonboard.domain.model.Models.*
+import com.example.babyonboard.domain.model.TelemetryEvent
+import com.example.babyonboard.domain.model.Trip
 
 @Composable
-fun TripSummaryScreen(trip: Trip, events: List<TelemetryEvent>) {
+fun TripSummaryScreen(trip: Trip, events: List<TelemetryEvent>, units: String = "km") {
+    val speedUnit = if (units == "mi") "mph" else "km/h"
+    val distUnit = if (units == "mi") "mi" else "m"
+    val displaySpeed = if (units == "mi") trip.avgSpeed * 0.621371 else trip.avgSpeed
+    val displayDist = if (units == "mi") trip.distanceM * 0.000621371 else trip.distanceM.toDouble()
+    val distFormat = if (units == "mi") "%.2f".format(displayDist) else "${trip.distanceM.toInt()}"
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -26,7 +33,7 @@ fun TripSummaryScreen(trip: Trip, events: List<TelemetryEvent>) {
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = MaterialTheme.colorScheme.primaryContainer
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(
@@ -48,11 +55,11 @@ fun TripSummaryScreen(trip: Trip, events: List<TelemetryEvent>) {
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text("Avg Speed", style = MaterialTheme.typography.bodyLarge)
-                Text("${trip.avgSpeed} km/h", style = MaterialTheme.typography.headlineSmall)
+                Text("$displaySpeed $speedUnit", style = MaterialTheme.typography.headlineSmall)
             }
             Column(modifier = Modifier.weight(1f)) {
                 Text("Distance", style = MaterialTheme.typography.bodyLarge)
-                Text("${trip.distanceM.toInt()} m", style = MaterialTheme.typography.headlineSmall)
+                Text("$distFormat $distUnit", style = MaterialTheme.typography.headlineSmall)
             }
         }
 

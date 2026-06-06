@@ -1,21 +1,27 @@
 package com.example.babyonboard.sensing.engine
 
 import com.example.babyonboard.domain.model.EventType
+import com.example.babyonboard.domain.model.TelemetryEvent
 import kotlin.math.abs
 
 class TelemetryEngine(private val babyMode: Boolean) {
 
     private val longAccelThreshold = if (babyMode) 2.5 else 3.5
     private val latAccelThreshold = if (babyMode) 3.0 else 4.0
-    private val jerkThreshold = 2.0 // Example
+    private val jerkThreshold = 2.0
+
+    private var prevAccel: Double? = null
+    private var prevTimestamp: Long? = null
 
     fun processRawData(data: RawSensorData): TelemetryFrame {
-        // 1. Frame Transform (Simplified for MVP: assuming data is already somewhat aligned or using raw for now)
-        // In a real implementation, this would use rotation matrices from rotation vector.
-        
-        // 2. Filter & Compute Jerk
-        // For MVP, jerk = d(accel)/dt. We'll need a buffer for this.
-        val jerk = 0.0 // Placeholder for actual jerk calculation over a window
+        val jerk = if (prevAccel != null && prevTimestamp != null) {
+            val dt = (data.timestamp - prevTimestamp!!) / 1000.0
+            if (dt > 0.0) abs(data.longAccel - prevAccel!!) / dt else 0.0
+        } else {
+            0.0
+        }
+        prevAccel = data.longAccel
+        prevTimestamp = data.timestamp
 
         return TelemetryFrame(
             timestamp = data.timestamp,
@@ -31,45 +37,34 @@ class TelemetryEngine(private val babyMode: Boolean) {
         )
     }
 
-    fun detectEvents(frame: TelemetryFrame): List<TelemetryEvent> {
+    fun detectEvents(frame: TelemetryFrame, tripId: String): List<TelemetryEvent> {
         val events = mutableListOf<TelemetryEvent>()
-        
-        // Hard Braking
+        val ts = frame.timestamp
+
         if (frame.longAccel <= -longAccelThreshold && frame.speed > 5.0) {
             events.add(TelemetryEvent(
-                frame.timestamp,
-                EventType.BRAKE,
-                0.8f,
-                abs(frame.longAccel),
-                frame.lat,
-                frame.lng,
-                0.9f
+                id = "${tripId}_brake_$ts", tripId = tripId, ts = ts,
+                type = EventType.BRAKE, severity = 0.8f,
+                value = abs(frame.longAccel),
+                lat = frame.lat, lng = frame.lng, confidence = 0.9f
             ))
         }
 
-        // Hard Acceleration
         if (frame.longAccel >= longAccelThreshold && frame.speed > 5.0) {
             events.add(TelemetryEvent(
-                frame.timestamp,
-                EventType.ACCEL,
-                0.8f,
-                frame.longAccel,
-                frame.lat,
-                frame.lng,
-                0.9f
+                id = "${tripId}_accel_$ts", tripId = tripId, ts = ts,
+                type = EventType.ACCEL, severity = 0.8f,
+                value = frame.longAccel,
+                lat = frame.lat, lng = frame.lng, confidence = 0.9f
             ))
         }
 
-        // Hard Cornering
         if (abs(frame.latAccel) >= latAccelThreshold && abs(frame.yawRate) > 0.1) {
             events.add(TelemetryEvent(
-                frame.timestamp,
-                EventType.CORNER,
-                0.7f,
-                abs(frame.latAccel),
-                frame.lat,
-                frame.lng,
-                0.8f
+                id = "${tripId}_corner_$ts", tripId = tripId, ts = ts,
+                type = EventType.CORNER, severity = 0.7f,
+                value = abs(frame.latAccel),
+                lat = frame.lat, lng = frame.lng, confidence = 0.8f
             ))
         }
 

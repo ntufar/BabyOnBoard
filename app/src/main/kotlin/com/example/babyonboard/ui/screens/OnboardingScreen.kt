@@ -10,10 +10,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.babyonboard.ui.viewmodel.TripViewModel
-
 @Composable
-fun OnboardingScreen(viewModel: TripViewModel, onComplete: () -> Unit) {
+fun OnboardingScreen(onComplete: () -> Unit) {
     var babyMode by remember { mutableStateOf(true) }
     val context = LocalContext.current
 
@@ -37,10 +35,9 @@ fun OnboardingScreen(viewModel: TripViewModel, onComplete: () -> Unit) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Honest Limits
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = MaterialTheme.colorScheme.primaryContainer
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text(

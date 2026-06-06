@@ -1,11 +1,12 @@
 package com.example.babyonboard.data.repository
 
-import com.example.babyonboard.data.db.Daos.*
-import com.example.babyonboard.data.model.Entities.*
-import com.example.babyonboard.domain.model.Models.*
+import com.example.babyonboard.data.db.ContactDao
+import com.example.babyonboard.data.db.EventDao
+import com.example.babyonboard.data.db.SettingsDao
+import com.example.babyonboard.data.db.TripDao
+import com.example.babyonboard.data.model.*
+import com.example.babyonboard.domain.model.*
 import com.example.babyonboard.domain.repository.TripRepository
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 class TripRepositoryImpl(
     private val tripDao: TripDao,
@@ -31,9 +32,9 @@ class TripRepositoryImpl(
     }
 
     override suspend fun getTripHistory(): List<Trip> {
-        return tripDao.getAllTrips().map {
-            Trip(it.id, it.startTs, it.endTs, it.distanceM, it.durationS, it
-                .avgSpeed, it.maxSpeed, it.score, it.babyMode, it.routeRef)
+        return tripDao.getAllTrips().map { entity ->
+            Trip(entity.id, entity.startTs, entity.endTs, entity.distanceM, entity.durationS, entity
+                .avgSpeed, entity.maxSpeed, entity.score, entity.babyMode, entity.routeRef)
         }
     }
 
@@ -54,11 +55,21 @@ class TripRepositoryImpl(
     }
 
     override suspend fun getSettings(): Settings {
-        val entity = settingsDao.getSettings() ?: throw Exception("Settings not found")
-        return Settings(
-            entity.autoStart, entity.btTriggerDeviceId, entity.dndInTrip,
-            entity.reminderEscalation, entity.retentionDays, entity.units,
-            entity.emergencyNumber
+        val entity = settingsDao.getSettings()
+        return entity?.let { s ->
+            Settings(
+                s.autoStart, s.btTriggerDeviceId, s.dndInTrip,
+                s.reminderEscalation, s.retentionDays, s.units,
+                s.emergencyNumber
+            )
+        } ?: Settings(
+            autoStart = false,
+            btTriggerDeviceId = null,
+            dndInTrip = true,
+            reminderEscalation = 1,
+            retentionDays = 30,
+            units = "km",
+            emergencyNumber = "112"
         )
     }
 
@@ -70,8 +81,8 @@ class TripRepositoryImpl(
     }
 
     override suspend fun getContacts(): List<Contact> {
-        return contactDao.getAllContacts().map {
-            Contact(it.id, it.name, it.phone, ContactRole.valueOf(it.role), it.consentTs)
+        return contactDao.getAllContacts().map { entity ->
+            Contact(entity.id, entity.name, entity.phone, ContactRole.valueOf(entity.role), entity.consentTs)
         }
     }
 }

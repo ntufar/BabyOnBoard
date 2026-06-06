@@ -1,11 +1,11 @@
 package com.example.babyonboard.data.model
 
 import androidx.room.Entity
-import androidx.room.Id
+import androidx.room.PrimaryKey
 
 @Entity(tableName = "trips")
 data class TripEntity(
-    @Id val id: String,
+    @PrimaryKey val id: String,
     val startTs: Long,
     val endTs: Long?,
     val distanceM: Double,
@@ -24,12 +24,12 @@ data class TripEntity(
         childColumns = ["tripId"],
         onDelete = androidx.room.ForeignKey.CASCADE
     )
-])
+], indices = [androidx.room.Index("tripId")])
 data class EventEntity(
-    @Id val id: String,
+    @PrimaryKey val id: String,
     val tripId: String,
     val ts: Long,
-    val type: String, // Store as String for simplicity or use TypeConverter
+    val type: String,
     val severity: Float,
     val value: Double,
     val lat: Double,
@@ -44,9 +44,9 @@ data class EventEntity(
         childColumns = ["tripId"],
         onDelete = androidx.room.ForeignKey.CASCADE
     )
-])
+], indices = [androidx.room.Index("tripId")])
 data class MetricSampleEntity(
-    @Id val id: String, // Need an ID for MetricSample too
+    @PrimaryKey val id: String,
     val tripId: String,
     val ts: Long,
     val speed: Double,
@@ -59,7 +59,7 @@ data class MetricSampleEntity(
 
 @Entity(tableName = "contacts")
 data class ContactEntity(
-    @Id val id: String,
+    @PrimaryKey val id: String,
     val name: String,
     val phone: String,
     val role: String,
@@ -68,7 +68,7 @@ data class ContactEntity(
 
 @Entity(tableName = "geofences")
 data class GeofenceEntity(
-    @Id val id: String,
+    @PrimaryKey val id: String,
     val label: String,
     val lat: Double,
     val lng: Double,

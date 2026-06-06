@@ -1,6 +1,9 @@
 package com.example.babyonboard.domain.repository
 
-import com.example.babyonboard.domain.model.Models.*
+import com.example.babyonboard.domain.model.Contact
+import com.example.babyonboard.domain.model.Event
+import com.example.babyonboard.domain.model.Settings
+import com.example.babyonboard.domain.model.Trip
 
 interface TripRepository {
     suspend fun saveTrip(trip: Trip)

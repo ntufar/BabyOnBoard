@@ -1,7 +1,7 @@
 package com.example.babyonboard.data.db
 
 import androidx.room.*
-import com.example.babyonboard.data.model.Entities.*
+import com.example.babyonboard.data.model.*
 
 @Dao
 interface TripDao {

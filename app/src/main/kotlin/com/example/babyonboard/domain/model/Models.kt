@@ -27,6 +27,18 @@ data class Event(
     val confidence: Float
 )
 
+data class TelemetryEvent(
+    val id: String,
+    val tripId: String,
+    val ts: Long,
+    val type: EventType,
+    val severity: Float,
+    val value: Double,
+    val lat: Double,
+    val lng: Double,
+    val confidence: Float
+)
+
 enum class EventType {
     BRAKE, ACCEL, CORNER, SWERVE, ROUGH, SPEED, PHONE_USE, CRASH
 }
