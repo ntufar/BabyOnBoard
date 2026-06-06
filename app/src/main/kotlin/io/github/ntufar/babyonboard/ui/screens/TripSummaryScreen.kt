@@ -3,21 +3,32 @@ package io.github.ntufar.babyonboard.ui.screens
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.ntufar.babyonboard.domain.model.TelemetryEvent
 import io.github.ntufar.babyonboard.domain.model.Trip
 
 @Composable
-fun TripSummaryScreen(trip: Trip, events: List<TelemetryEvent>, units: String = "km") {
+fun TripSummaryScreen(
+    trip: Trip,
+    events: List<TelemetryEvent>,
+    units: String = "km",
+    onBackToHistory: () -> Unit
+) {
     val speedUnit = if (units == "mi") "mph" else "km/h"
     val distUnit = if (units == "mi") "mi" else "m"
     val displaySpeed = if (units == "mi") trip.avgSpeed * 0.621371 else trip.avgSpeed
     val displayDist = if (units == "mi") trip.distanceM * 0.000621371 else trip.distanceM.toDouble()
     val distFormat = if (units == "mi") "%.2f".format(displayDist) else "${trip.distanceM.toInt()}"
+
+    val harshEvents = events.count { it.severity > 0.5f }
 
     Column(
         modifier = Modifier
@@ -28,66 +39,164 @@ fun TripSummaryScreen(trip: Trip, events: List<TelemetryEvent>, units: String = 
         Text(
             text = "Trip Summary",
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
         )
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            colors = CardDefaults.cardColors(
+                containerColor = when {
+                    trip.score >= 80 -> MaterialTheme.colorScheme.primaryContainer
+                    trip.score >= 60 -> MaterialTheme.colorScheme.tertiaryContainer
+                    else -> MaterialTheme.colorScheme.errorContainer
+                }
+            )
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = "Safe-Driving Score",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(8.dp))
                 Text(
                     text = "${trip.score} / 100",
-                    style = MaterialTheme.typography.displaySmall,
-                    fontWeight = FontWeight.ExtraBold
+                    style = MaterialTheme.typography.displayLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = when {
+                        trip.score >= 80 -> MaterialTheme.colorScheme.primary
+                        trip.score >= 60 -> MaterialTheme.colorScheme.tertiary
+                        else -> MaterialTheme.colorScheme.error
+                    }
                 )
             }
         }
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Avg Speed", style = MaterialTheme.typography.bodyLarge)
-                Text("$displaySpeed $speedUnit", style = MaterialTheme.typography.headlineSmall)
+            Card(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Avg Speed", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = "%.1f".format(displaySpeed),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(speedUnit, style = MaterialTheme.typography.labelSmall)
+                }
             }
-            Column(modifier = Modifier.weight(1f)) {
-                Text("Distance", style = MaterialTheme.typography.bodyLarge)
-                Text("$distFormat $distUnit", style = MaterialTheme.typography.headlineSmall)
+            Card(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Distance", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = distFormat,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(distUnit, style = MaterialTheme.typography.labelSmall)
+                }
+            }
+            Card(modifier = Modifier.weight(1f)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text("Duration", style = MaterialTheme.typography.labelMedium)
+                    Text(
+                        text = formatDurationShort(trip.durationS),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "Harsh Events Detected (${events.size})",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-
-        LazyColumn(modifier = Modifier.fillMaxWidth()) {
-            items(events) { event ->
-                ListItem(
-                    headlineContent = { Text("${event.type}: ${event.value.toInt()}") },
-                    supportingContent = { Text("Confidence: ${(event.confidence * 100).toInt()}%") },
-                    trailingContent = {
-                        val color = if (event.severity > 0.7f) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                        Surface(color = color, shape = MaterialTheme.shapes.small) {
-                            Text(
-                                text = event.severity.toString(),
-                                modifier = Modifier.padding(4.dp),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = if (harshEvents == 0) MaterialTheme.colorScheme.primaryContainer
+                else MaterialTheme.colorScheme.errorContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Harsh Events: $harshEvents",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
+
+        if (events.isNotEmpty()) {
+            Text(
+                text = "Events",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(events, key = { it.id }) { event ->
+                    EventCard(event)
+                }
+            }
+        }
+
+        if (trip.babyMode) {
+            Surface(
+                color = MaterialTheme.colorScheme.tertiaryContainer,
+                shape = MaterialTheme.shapes.small,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Recorded in Baby Mode",
+                    modifier = Modifier.padding(8.dp),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+
+        Button(
+            onClick = onBackToHistory,
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp)
+        ) {
+            Icon(Icons.Default.Home, contentDescription = null)
+            Spacer(modifier = Modifier.width(8.dp))
+            Text("Back to History")
+        }
     }
+}
+
+private fun formatDurationShort(seconds: Long): String {
+    val h = seconds / 3600
+    val m = (seconds % 3600) / 60
+    val s = seconds % 60
+    return if (h > 0) "%dh %02dm".format(h, m)
+    else "%dm %02ds".format(m, s)
 }

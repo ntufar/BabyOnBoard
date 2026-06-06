@@ -13,7 +13,6 @@ import io.github.ntufar.babyonboard.sensing.engine.TelemetryEngine
 import io.github.ntufar.babyonboard.sensing.sources.LocationSource
 import io.github.ntufar.babyonboard.sensing.sources.MotionSource
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 
 class TripForegroundService : Service() {
@@ -21,20 +20,26 @@ class TripForegroundService : Service() {
     private lateinit var telemetryEngine: TelemetryEngine
     private lateinit var locationSource: LocationSource
     private lateinit var motionSource: MotionSource
+    private var tripId: String = ""
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
         super.onCreate()
-        telemetryEngine = TelemetryEngine(babyMode = true)
         locationSource = LocationSource(this)
         motionSource = MotionSource(this)
+    }
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        val babyMode = intent?.getBooleanExtra(EXTRA_BABY_MODE, true) ?: true
+        tripId = intent?.getStringExtra(EXTRA_TRIP_ID) ?: "unknown"
+
+        telemetryEngine = TelemetryEngine(babyMode = babyMode)
+        locationSource.start()
+        motionSource.start()
 
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
-
-        locationSource.start()
-        motionSource.start()
 
         serviceScope.launch {
             locationSource.locationFlow.combine(motionSource.sensorFlow) { loc, motion ->
@@ -46,12 +51,27 @@ class TripForegroundService : Service() {
                 )
             }.collect { data ->
                 val frame = telemetryEngine.processRawData(data)
-                val events = telemetryEngine.detectEvents(frame, "trip_${System.currentTimeMillis()}")
+                val events = telemetryEngine.detectEvents(frame, tripId)
+
+                val speedIntent = Intent(ACTION_SPEED_UPDATE).apply {
+                    putExtra(EXTRA_SPEED, data.speed * 3.6)
+                    putExtra(EXTRA_TRIP_ID, tripId)
+                }
+                sendBroadcast(speedIntent)
+
+                for (event in events) {
+                    val eventIntent = Intent(ACTION_EVENT_DETECTED).apply {
+                        putExtra(EXTRA_EVENT_TYPE, event.type.name)
+                        putExtra(EXTRA_EVENT_VALUE, event.value)
+                        putExtra(EXTRA_EVENT_CONFIDENCE, event.confidence)
+                        putExtra(EXTRA_EVENT_SEVERITY, event.severity)
+                        putExtra(EXTRA_TRIP_ID, tripId)
+                    }
+                    sendBroadcast(eventIntent)
+                }
             }
         }
-    }
 
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         return START_STICKY
     }
 
@@ -88,7 +108,16 @@ class TripForegroundService : Service() {
     }
 
     companion object {
-        private const val CHANNEL_ID = "trip_recording"
-        private const val NOTIFICATION_ID = 1
+        const val CHANNEL_ID = "trip_recording"
+        const val NOTIFICATION_ID = 1
+        const val EXTRA_TRIP_ID = "trip_id"
+        const val EXTRA_BABY_MODE = "baby_mode"
+        const val EXTRA_SPEED = "speed"
+        const val EXTRA_EVENT_TYPE = "event_type"
+        const val EXTRA_EVENT_VALUE = "event_value"
+        const val EXTRA_EVENT_CONFIDENCE = "event_confidence"
+        const val EXTRA_EVENT_SEVERITY = "event_severity"
+        const val ACTION_SPEED_UPDATE = "io.github.ntufar.babyonboard.SPEED_UPDATE"
+        const val ACTION_EVENT_DETECTED = "io.github.ntufar.babyonboard.EVENT_DETECTED"
     }
 }

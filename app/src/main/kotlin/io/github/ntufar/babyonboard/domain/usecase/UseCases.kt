@@ -2,11 +2,12 @@ package io.github.ntufar.babyonboard.domain.usecase
 
 import io.github.ntufar.babyonboard.domain.model.Trip
 import io.github.ntufar.babyonboard.domain.repository.TripRepository
+import java.util.UUID
 
 class StartTripUseCase(private val repository: TripRepository) {
     suspend fun execute(babyMode: Boolean): Trip {
-        return Trip(
-            id = "temp_id",
+        val trip = Trip(
+            id = UUID.randomUUID().toString(),
             startTs = System.currentTimeMillis(),
             endTs = null,
             distanceM = 0.0,
@@ -16,5 +17,7 @@ class StartTripUseCase(private val repository: TripRepository) {
             score = 100,
             babyMode = babyMode
         )
+        repository.saveTrip(trip)
+        return trip
     }
 }

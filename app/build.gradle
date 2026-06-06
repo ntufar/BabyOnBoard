@@ -14,7 +14,7 @@ android {
         minSdk 26
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+        versionName "0.0.1"
     }
 
     buildTypes {
@@ -78,9 +78,44 @@ dependencies {
     
     // Sensors & Location
     implementation "com.google.android.gms:play-services-location:21.1.0"
-    
+
     // Coroutines
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3"
-    implementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
 
+    // --- Test Dependencies ---
+
+    // Core testing
+    testImplementation "junit:junit:4.13.2"
+    testImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
+    testImplementation "com.google.truth:truth:1.4.0"
+    testImplementation "org.robolectric:robolectric:4.11.1"
+
+    // Mocking
+    testImplementation "io.mockk:mockk:1.13.9"
+
+    // Room in-memory for testing repositories
+    testImplementation "androidx.room:room-testing:2.6.1"
+
+    // Hilt testing
+    testImplementation "com.google.dagger:hilt-android-testing:2.48"
+    kaptTest "com.google.dagger:hilt-android-compiler:2.48"
+
+    // AndroidX test
+    testImplementation "androidx.test:core:1.5.0"
+    testImplementation "androidx.test:runner:1.5.2"
+    testImplementation "androidx.test.ext:junit:1.1.5"
+
+    // Compose UI tests
+    androidTestImplementation "androidx.compose.ui:ui-test-junit4:1.5.4"
+    debugImplementation "androidx.compose.ui:ui-test-manifest:1.5.4"
+
+    // Instrumented Hilt tests
+    androidTestImplementation "com.google.dagger:hilt-android-testing:2.48"
+    kaptAndroidTest "com.google.dagger:hilt-android-compiler:2.48"
+
+    // Instrumented coroutines
+    androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:1.7.3"
+    androidTestImplementation "com.google.truth:truth:1.4.0"
+    androidTestImplementation "io.mockk:mockk:1.13.9"
+    androidTestImplementation "androidx.arch.core:core-testing:2.2.0"
 }

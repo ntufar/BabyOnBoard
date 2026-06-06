@@ -7,12 +7,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.*
 import androidx.hilt.navigation.compose.hiltViewModel
-import io.github.ntufar.babyonboard.domain.model.EventType
-import io.github.ntufar.babyonboard.domain.model.Settings
-import io.github.ntufar.babyonboard.domain.model.TelemetryEvent
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import io.github.ntufar.babyonboard.domain.model.Trip
 import io.github.ntufar.babyonboard.ui.screens.*
 import io.github.ntufar.babyonboard.ui.theme.BabyOnBoardTheme
+import io.github.ntufar.babyonboard.ui.viewmodel.SettingsViewModel
 import io.github.ntufar.babyonboard.ui.viewmodel.TripViewModel
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -23,36 +24,83 @@ class MainActivity : ComponentActivity() {
         setContent {
             BabyOnBoardTheme {
                 Surface(color = MaterialTheme.colorScheme.background) {
-                    val viewModel: TripViewModel = hiltViewModel()
-                    var currentScreen by remember { mutableStateOf("onboarding") }
-                    var tripData by remember { mutableStateOf<Trip?>(null) }
-                    var events by remember { mutableStateOf(emptyList<TelemetryEvent>()) }
+                    val navController = rememberNavController()
+                    val tripViewModel: TripViewModel = hiltViewModel()
+                    val settingsViewModel: SettingsViewModel = hiltViewModel()
 
-                    when (currentScreen) {
-                        "onboarding" -> {
+                    var babyMode by remember { mutableStateOf(true) }
+
+                    NavHost(navController = navController, startDestination = "onboarding") {
+                        composable("onboarding") {
                             OnboardingScreen(
-                                onComplete = {
-                                    currentScreen = "summary"
-                                    tripData = Trip(
-                                        "1", System.currentTimeMillis(), System.currentTimeMillis(),
-                                        10000.0, 600, 45.0, 80.0, 92, true, null
-                                    )
-                                    events = listOf(
-                                        TelemetryEvent(
-                                            "e1", "1", System.currentTimeMillis(),
-                                            EventType.BRAKE, 0.8f, 4.5, 10.0, 10.0, 0.9f
-                                        )
-                                    )
+                                onComplete = { mode ->
+                                    babyMode = mode
+                                    tripViewModel.startTrip(mode)
+                                    navController.navigate("live_trip") {
+                                        popUpTo("onboarding") { inclusive = true }
+                                    }
                                 }
                             )
                         }
-                        "summary" -> {
-                            tripData?.let { TripSummaryScreen(it, events) }
+
+                        composable("trip_history") {
+                            TripHistoryScreen(
+                                viewModel = tripViewModel,
+                                onStartTrip = {
+                                    tripViewModel.startTrip(babyMode)
+                                    navController.navigate("live_trip")
+                                },
+                                onTripSelected = { trip ->
+                                    navController.navigate("trip_summary/${trip.id}")
+                                },
+                                onSettings = {
+                                    navController.navigate("settings")
+                                }
+                            )
                         }
-                        "settings" -> {
+
+                        composable("live_trip") {
+                            LiveTripScreen(
+                                viewModel = tripViewModel,
+                                onTripEnded = {
+                                    val trip = tripViewModel.currentTrip.value
+                                    if (trip != null) {
+                                        navController.navigate("trip_summary/${trip.id}") {
+                                            popUpTo("trip_history") { inclusive = true }
+                                        }
+                                    }
+                                }
+                            )
+                        }
+
+                        composable("trip_summary/{tripId}") { backStackEntry ->
+                            val tripId = backStackEntry.arguments?.getString("tripId") ?: return@composable
+
+                            LaunchedEffect(tripId) {
+                                tripViewModel.loadEventsForTrip(tripId, emptyList())
+                            }
+
+                            val currentTrip by tripViewModel.currentTrip.collectAsState()
+                            val events by tripViewModel.events.collectAsState()
+
+                            currentTrip?.let { trip ->
+                                TripSummaryScreen(
+                                    trip = trip,
+                                    events = events,
+                                    onBackToHistory = {
+                                        navController.navigate("trip_history") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        composable("settings") {
                             SettingsScreen(
-                                Settings(true, null, true, 1, 30, "km", "112")
-                            ) { _ -> }
+                                viewModel = settingsViewModel,
+                                onBack = { navController.popBackStack() }
+                            )
                         }
                     }
                 }
