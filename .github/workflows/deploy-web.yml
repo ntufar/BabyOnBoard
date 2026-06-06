@@ -1,0 +1,33 @@
+name: Deploy Web Dashboard
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - 'web/**'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v3
+        with:
+          # This assumes the web folder content will be moved to the root or a specific folder
+          # For simplicity in this specific setup, we deploy from the web directory.
+          # Note: GitHub Pages usually serves from the root or /docs. 
+          # We might need to move files or configure the path.
+          folder: web
