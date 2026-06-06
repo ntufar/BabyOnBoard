@@ -1,69 +1,125 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Baby on Board | Dashboard</title>
+    <title>Baby on Board — Safe-Driving Telemetry for Families</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-gray-50 text-gray-900 antialiased">
     <nav class="bg-blue-600 p-4 text-white shadow-lg">
         <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-xl font-bold">Baby on Board Dashboard</h1>
-            <span class="text-sm">Telemetry Web View</span>
+            <h1 class="text-xl font-bold tracking-tight">Baby on Board</h1>
+            <span class="text-sm text-blue-100">v0.2 &middot; Android</span>
         </div>
     </nav>
 
-    <main class="container mx-auto p-8">
-        <header class="mb-8">
-            <h2 class="text-3xl font-bold mb-2">Trip Summary</h2>
-            <p class="text-gray-600">Live telemetry data from the Baby on Board app.</p>
-        </header>
+    <main class="container mx-auto px-6 py-12 max-w-4xl">
+        <section class="text-center mb-16">
+            <h2 class="text-4xl font-bold mb-4">Safe-Driving Telemetry for Families</h2>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                An Android app that turns your phone's sensors into calm, meaningful feedback
+                about driving smoothness &mdash; built for parents and caregivers.
+            </p>
+            <div class="mt-8 flex flex-wrap justify-center gap-3">
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-4 py-2 rounded-full">Kotlin</span>
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-4 py-2 rounded-full">Jetpack Compose</span>
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-4 py-2 rounded-full">On-Device</span>
+                <span class="bg-blue-100 text-blue-800 text-sm font-medium px-4 py-2 rounded-full">Privacy First</span>
+            </div>
+        </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                <h3 class="text-gray-500 text-sm font-medium">Safe-Driving Score</h3>
-                <div class="text-4xl font-bold text-blue-600">92 / 100</div>
+        <section class="mb-16">
+            <h3 class="text-2xl font-bold mb-6">Key Features</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-lg mb-2">Driving Telemetry Engine</h4>
+                    <p class="text-gray-600 text-sm">Real-time monitoring of speed, hard braking, hard acceleration, and cornering using sensor fusion (GNSS + accelerometer + gyroscope).</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-lg mb-2">Baby Mode</h4>
+                    <p class="text-gray-600 text-sm">User-activated stricter safety thresholds that prioritise smoothness and jerk reduction for infant comfort. Never automatic &mdash; you're in control.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-lg mb-2">Safe-Driving Score</h4>
+                    <p class="text-gray-600 text-sm">A 0&ndash;100 score computed from harsh-event rate per 100 km, jerk, and speed smoothness. Calm, non-punitive feedback after every trip.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-lg mb-2">Crash Detection &amp; SOS</h4>
+                    <p class="text-gray-600 text-sm">Best-effort crash detection with a user-cancellable 60-second countdown before alerting emergency contacts and prompting a 112 call.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-lg mb-2">Back-Seat Reminder</h4>
+                    <p class="text-gray-600 text-sm">A prominent "check the back seat" reminder at the end of trips in Baby mode &mdash; positioned as a backstop, not a guarantee.</p>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                    <h4 class="font-bold text-lg mb-2">Distraction Reduction</h4>
+                    <p class="text-gray-600 text-sm">In-trip Do Not Disturb activation and passive phone-handling measurement, surfaced in the trip summary &mdash; never a distracting real-time alert.</p>
+                </div>
             </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                <h3 class="text-gray-500 text-sm font-medium">Avg Speed</h3>
-                <div class="text-4xl font-bold text-gray-800">45.2 km/h</div>
-            </div>
-            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                <h3 class="text-gray-500 text-sm font-medium">Distance</h3>
-                <div class="text-4xl font-bold text-gray-800">12.4 km</div>
-            </div>
-        </div>
+        </section>
 
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            <h3 class="text-lg font-bold mb-4">Harsh Events</h3>
-            <table class="w-full text-left">
-                <thead>
-                    <tr class="border-b">
-                        <th class="pb-2">Type</th>
-                        <th class="pb-2">Severity</th>
-                        <th class="pb-2">Confidence</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr class="border-b">
-                        <td class="py-3">Hard Brake</td>
-                        <td class="py-3 text-red-500">0.85</td>
-                        <td class="py-3">92%</td>
-                    </tr>
-                    <tr class="border-b">
-                        <td class="py-3">Hard Corner</td>
-                        <td class="py-3 text-orange-500">0.72</td>
-                        <td class="py-3">88%</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <section class="mb-16 bg-blue-50 p-8 rounded-xl">
+            <h3 class="text-2xl font-bold mb-4">Privacy First</h3>
+            <p class="text-gray-700 mb-4">
+                All telemetry computation runs on-device. No raw sensor data leaves your phone.
+                Location is used for speed and routing only &mdash; nothing is transmitted without your explicit consent.
+            </p>
+            <ul class="space-y-2 text-sm text-gray-600">
+                <li>&check; On-device processing by default</li>
+                <li>&check; Encrypted local storage (SQLCipher)</li>
+                <li>&check; No account required for MVP core</li>
+                <li>&check; Export and delete all data in-app</li>
+                <li>&check; GDPR compliant</li>
+            </ul>
+        </section>
+
+        <section class="mb-16">
+            <h3 class="text-2xl font-bold mb-6">Tech Stack</h3>
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <dl class="grid grid-cols-1 sm:grid-cols-2 gap-y-4 gap-x-8 text-sm">
+                    <div class="flex justify-between"><span class="text-gray-500">Language</span><span class="font-medium">Kotlin</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">UI</span><span class="font-medium">Jetpack Compose (Material 3)</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Architecture</span><span class="font-medium">Clean Architecture + MVVM</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">DI</span><span class="font-medium">Hilt</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Persistence</span><span class="font-medium">Room (SQLCipher), DataStore</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Concurrency</span><span class="font-medium">Coroutines &amp; Flow</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Background</span><span class="font-medium">Foreground Services</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Sensors</span><span class="font-medium">GNSS, Accelerometer, Gyroscope</span></div>
+                </dl>
+            </div>
+        </section>
+
+        <section class="mb-16">
+            <h3 class="text-2xl font-bold mb-6">Roadmap</h3>
+            <div class="space-y-4">
+                <div class="flex items-start gap-4">
+                    <span class="bg-green-500 text-white rounded-full w-7 h-7 flex items-center justify-center shrink-0 mt-0.5 text-sm font-bold">&check;</span>
+                    <div><p class="font-medium">MVP</p><p class="text-sm text-gray-600">Telemetry engine, Baby Mode, trip history, crash SOS, back-seat reminder, local persistence.</p></div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="bg-blue-500 text-white rounded-full w-7 h-7 flex items-center justify-center shrink-0 mt-0.5 text-sm font-bold">2</span>
+                    <div><p class="font-medium">v1.1</p><p class="text-sm text-gray-600">Road roughness, gradient detection, arrival sharing, gamification, optional cloud backup.</p></div>
+                </div>
+                <div class="flex items-start gap-4">
+                    <span class="bg-gray-400 text-white rounded-full w-7 h-7 flex items-center justify-center shrink-0 mt-0.5 text-sm font-bold">3</span>
+                    <div><p class="font-medium">v1.2</p><p class="text-sm text-gray-600">On-device ML scoring (TFLite), insurer/family-plan exploration.</p></div>
+                </div>
+            </div>
+        </section>
+
+        <section class="text-center">
+            <p class="text-gray-500 text-sm">
+                Built with Kotlin and Jetpack Compose. Entirely on-device. Available on Android.
+            </p>
+            <p class="text-gray-400 text-xs mt-2">
+                Baby on Board uses only the sensors in your phone. It does not detect a child &mdash; Baby mode is user-activated.
+            </p>
+        </section>
     </main>
 
-    <footer class="mt-12 text-center text-gray-400 text-sm">
-        &copy; 2026 Baby on Board - Safe-Driving Telemetry
+    <footer class="text-center text-gray-400 text-sm pb-8">
+        &copy; 2026 Baby on Board &mdash; Safe-Driving Telemetry for Families
     </footer>
 </body>
 </html>
