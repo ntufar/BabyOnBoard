@@ -1,0 +1,4 @@
+<resources>
+    <style name="Theme.BabyOnBoard" parent="android:Theme.Black">
+    </style>
+</resources>
