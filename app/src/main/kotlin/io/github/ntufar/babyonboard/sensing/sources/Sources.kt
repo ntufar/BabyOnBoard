@@ -112,3 +112,40 @@ class MotionSource(context: Context) : SensorEventListener {
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
 }
+
+class DistractionSource(context: Context) {
+    private val _distractionFlow = MutableSharedFlow<Unit>(extraBufferCapacity = 10)
+    val distractionFlow: SharedFlow<Unit> = _distractionFlow
+    private var screenOn = false
+    private var lastDistractionTs = 0L
+    private val debounceMs = 5000L
+
+    fun start() {
+        screenOn = true
+    }
+
+    fun onScreenOn() {
+        screenOn = true
+        val now = System.currentTimeMillis()
+        if (now - lastDistractionTs > debounceMs) {
+            lastDistractionTs = now
+            _distractionFlow.tryEmit(Unit)
+        }
+    }
+
+    fun onScreenOff() {
+        screenOn = false
+    }
+
+    fun tick(speedKmh: Double) {
+        if (screenOn && speedKmh > 5.0) {
+            val now = System.currentTimeMillis()
+            if (now - lastDistractionTs > debounceMs) {
+                lastDistractionTs = now
+                _distractionFlow.tryEmit(Unit)
+            }
+        }
+    }
+
+    fun stop() {}
+}

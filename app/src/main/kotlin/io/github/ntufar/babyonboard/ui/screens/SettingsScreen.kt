@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,13 @@ fun SettingsScreen(
     var savedMessage by remember { mutableStateOf<String?>(null) }
 
     var showAddContactDialog by remember { mutableStateOf(false) }
+
+    val context = LocalContext.current
+    val appVersion = remember {
+        try {
+            context.packageManager.getPackageInfo(context.packageName, 0).versionName ?: "?"
+        } catch (_: Exception) { "?" }
+    }
 
     val unitOptions = listOf("km", "mi")
     val retentionOptions = listOf(7, 14, 30, 60, 90)
@@ -227,6 +235,16 @@ fun SettingsScreen(
                 ) {
                     Text("Save Settings")
                 }
+            }
+
+            item {
+                Text(
+                    text = "v$appVersion",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
             }
 
             item { Spacer(modifier = Modifier.height(16.dp)) }

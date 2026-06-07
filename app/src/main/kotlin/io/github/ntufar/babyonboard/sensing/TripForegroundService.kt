@@ -12,6 +12,7 @@ import androidx.core.app.NotificationCompat
 import io.github.ntufar.babyonboard.MainActivity
 import io.github.ntufar.babyonboard.domain.usecase.EvaluateCrashUseCase
 import io.github.ntufar.babyonboard.sensing.engine.TelemetryEngine
+import io.github.ntufar.babyonboard.sensing.sources.DistractionSource
 import io.github.ntufar.babyonboard.sensing.sources.LocationSource
 import io.github.ntufar.babyonboard.sensing.sources.MotionSource
 import kotlinx.coroutines.*
@@ -23,6 +24,7 @@ class TripForegroundService : Service() {
     private lateinit var telemetryEngine: TelemetryEngine
     private lateinit var locationSource: LocationSource
     private lateinit var motionSource: MotionSource
+    private lateinit var distractionSource: DistractionSource
     private var tripId: String = ""
 
     private val speedHistory = mutableListOf<Double>()
@@ -36,6 +38,7 @@ class TripForegroundService : Service() {
         super.onCreate()
         locationSource = LocationSource(this)
         motionSource = MotionSource(this)
+        distractionSource = DistractionSource(this)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -44,8 +47,10 @@ class TripForegroundService : Service() {
         crashAlerted = false
 
         telemetryEngine = TelemetryEngine(babyMode = babyMode)
+        telemetryEngine.resetWindows()
         locationSource.start()
         motionSource.start()
+        distractionSource.start()
 
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
@@ -70,6 +75,14 @@ class TripForegroundService : Service() {
                 val frame = telemetryEngine.processRawData(data)
                 val events = telemetryEngine.detectEvents(frame, tripId)
 
+                val extendedEvents = telemetryEngine.detectExtendedEvents(frame, tripId)
+                val allEvents = events + extendedEvents
+
+                telemetryEngine.calculateGradient(data.altitude, data.lat, data.lng)
+
+                val speedKmh = data.speed * 3.6
+                distractionSource.tick(speedKmh)
+
                 speedHistory.add(data.speed)
                 accelHistory.add(abs(data.longAccel))
                 if (speedHistory.size > 30) speedHistory.removeAt(0)
@@ -89,12 +102,12 @@ class TripForegroundService : Service() {
                 }
 
                 val speedIntent = Intent(ACTION_SPEED_UPDATE).apply {
-                    putExtra(EXTRA_SPEED, data.speed * 3.6)
+                    putExtra(EXTRA_SPEED, speedKmh)
                     putExtra(EXTRA_TRIP_ID, tripId)
                 }
                 sendBroadcast(speedIntent)
 
-                for (event in events) {
+                for (event in allEvents) {
                     val eventIntent = Intent(ACTION_EVENT_DETECTED).apply {
                         putExtra(EXTRA_EVENT_TYPE, event.type.name)
                         putExtra(EXTRA_EVENT_VALUE, event.value)
@@ -107,12 +120,26 @@ class TripForegroundService : Service() {
             }
         }
 
+        serviceScope.launch {
+            distractionSource.distractionFlow.collect {
+                val eventIntent = Intent(ACTION_EVENT_DETECTED).apply {
+                    putExtra(EXTRA_EVENT_TYPE, "PHONE_USE")
+                    putExtra(EXTRA_EVENT_VALUE, 1.0)
+                    putExtra(EXTRA_EVENT_CONFIDENCE, 0.8f)
+                    putExtra(EXTRA_EVENT_SEVERITY, 0.7f)
+                    putExtra(EXTRA_TRIP_ID, tripId)
+                }
+                sendBroadcast(eventIntent)
+            }
+        }
+
         return START_STICKY
     }
 
     override fun onDestroy() {
         locationSource.stop()
         motionSource.stop()
+        distractionSource.stop()
         serviceScope.cancel()
         super.onDestroy()
     }

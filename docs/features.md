@@ -15,7 +15,7 @@ Legend: ✅ Done | 🟡 Partial | 🔴 Not started | ❌ Blocked
 | FR-3 | World-frame processing | ✅ | `TripForegroundService.rotateToWorldFrame()` with rotation matrix |
 | FR-4 | Store events with timestamp, type, severity, location, confidence | ✅ | `EventEntity` + `TelemetryEvent` model |
 | FR-5 | Per-trip smoothness score (0–100) | ✅ | `TelemetryEngine.calculateScore()` |
-| FR-6 | Extended metrics (roughness, gradient, swerve, distraction) | 🔴 | Not in MVP scope |
+| FR-6 | Extended metrics (roughness, gradient, swerve, distraction) | ✅ | `TelemetryEngine` ROUGH/SWERVE detection, gradient calc, `DistractionSource` |
 | FR-7 | Speed-limit comparison | 🔴 | Requires external data source; deferred |
 | FR-8 | On-device computation | ✅ | No raw sensor data leaves the device |
 

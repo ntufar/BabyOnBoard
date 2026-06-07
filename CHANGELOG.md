@@ -1,5 +1,25 @@
 # Changelog
 
+## [0.0.4] - 2026-06-07
+
+### Added
+- **Extended driving metrics** — road roughness detection (vertical accel variance), swerve detection (opposite yaw pattern), gradient calculation (altitude delta/distance), phone distraction tracking (screen-on while moving)
+- `TelemetryEngine.detectExtendedEvents()` — emits `ROUGH` and `SWERVE` events
+- `TelemetryEngine.calculateGradient()` — computes % grade from GPS altitude
+- `DistractionSource` — tracks screen-on state and emits `PHONE_USE` events when device is interacted with while driving
+- **16 KB page size alignment** — `patchelf` Gradle task aligns `libsqlcipher.so` LOAD segments for Android 15+ compatibility
+- **App version display** — version label (`v0.0.4`) shown in Settings screen footer
+- **End Trip navigation fix** — final score/duration computed synchronously so `trip_summary` renders correct data immediately
+- **Trip summary trip ID guard** — `loadEventsForTrip` no longer overwrites `_currentTrip` when it already matches the target trip
+
+### Changed
+- `TelemetryEngine.kt` — added rolling windows for vertical accel (roughness) and yaw/lat accel (swerve), `resetWindows()`, `haversineM()` companion
+- `Sources.kt` — added `DistractionSource` class
+- `TripForegroundService.kt` — wires extended events, distraction source, gradient calculation into sensor pipeline
+- `TripViewModel.kt` — `endTrip()` computes final state synchronously; `loadEventsForTrip()` preserves existing trip if ID matches
+- `SettingsScreen.kt` — added version label at bottom
+- `app/build.gradle` — added `patchelf` alignment task for 16 KB page size, version bumped to 0.0.4
+
 ## [0.0.3] - 2026-06-07
 
 ### Added

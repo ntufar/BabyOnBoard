@@ -128,17 +128,17 @@ class TripViewModel @Inject constructor(
         timerJob?.cancel()
         val wasBabyMode = _currentTrip.value?.babyMode == true
         stopForegroundService()
+        val trip = _currentTrip.value ?: return
+        val elapsed = _elapsedSeconds.value
+        val score = calculateFinalScore()
+        val updated = trip.copy(
+            endTs = System.currentTimeMillis(),
+            durationS = elapsed,
+            score = score
+        )
+        _currentTrip.value = updated
         viewModelScope.launch {
-            val trip = _currentTrip.value ?: return@launch
-            val elapsed = _elapsedSeconds.value
-            val score = calculateFinalScore()
-            val updated = trip.copy(
-                endTs = System.currentTimeMillis(),
-                durationS = elapsed,
-                score = score
-            )
             repository.updateTrip(updated)
-            _currentTrip.value = updated
             loadTripHistory()
             if (wasBabyMode) {
                 showBackSeatReminder()
@@ -175,8 +175,10 @@ class TripViewModel @Inject constructor(
 
     fun loadEventsForTrip(tripId: String, eventsList: List<TelemetryEvent>) {
         _events.value = eventsList
-        val trip = _tripHistory.value.find { it.id == tripId }
-        _currentTrip.value = trip
+        if (_currentTrip.value?.id != tripId) {
+            val trip = _tripHistory.value.find { it.id == tripId }
+            _currentTrip.value = trip
+        }
     }
 
     private fun startTimer() {
