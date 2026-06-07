@@ -1,13 +1,19 @@
 # Changelog
 
-## [0.0.6] - 2026-06-07
+## [0.0.7] - 2026-06-07
 
 ### Fixed
-- **16 KB memory page alignment** — `libsqlcipher.so` now properly aligned for Android 15+ compatibility; `patchelf` installed in CI release workflow and build fails on missing patchelf for release builds
+- **16 KB memory page alignment** — `libsqlcipher.so` now properly aligned for Android 15+ compatibility; alignment now runs after `stripReleaseDebugSymbols` (which previously undid the patchelf changes)
 
 ### Changed
 - Release workflow installs `patchelf` before building
-- `alignNativeLibs` task throws on missing patchelf for release variants
+- `alignNativeLibs` depends on strip task instead of merge task, so alignment survives stripping
+- Build fails on missing patchelf for release variants
+
+## [0.0.6] - 2026-06-07
+
+### Fixed
+- **16 KB memory page alignment** — `patchelf` installed in CI release workflow; build fails on missing patchelf for release builds
 
 ## [0.0.5] - 2026-06-07
 

@@ -13,8 +13,8 @@ android {
         applicationId "io.github.ntufar.babyonboard"
         minSdk 26
         targetSdk 35
-        versionCode 6
-        versionName "0.0.6"
+        versionCode 7
+        versionName "0.0.7"
     }
 
     signingConfigs {
@@ -62,13 +62,15 @@ android {
 
 android.applicationVariants.configureEach { variant ->
     def isRelease = variant.name.contains("release")
-    def mergeTask = tasks.findByName("merge${variant.name.capitalize()}NativeLibs")
-    if (mergeTask != null) {
-        def alignTask = tasks.register("align${variant.name.capitalize()}NativeLibs") {
-            dependsOn mergeTask
+    def variantCapitalized = variant.name.capitalize()
+    def stripTask = tasks.findByName("strip${variantCapitalized}DebugSymbols")
+    def mergeTask = tasks.findByName("merge${variantCapitalized}NativeLibs")
+    if (stripTask != null && mergeTask != null) {
+        def alignTask = tasks.register("align${variantCapitalized}NativeLibs") {
+            dependsOn stripTask
             doLast {
-                def mergedDir = mergeTask.outputs.files.asPath
-                fileTree(dir: mergedDir, include: "**/*.so").each { so ->
+                def strippedDir = stripTask.outputs.files.asPath
+                fileTree(dir: strippedDir, include: "**/*.so").each { so ->
                     try {
                         exec {
                             commandLine "patchelf", "--page-size", "16384", so.absolutePath
@@ -84,7 +86,7 @@ android.applicationVariants.configureEach { variant ->
                 }
             }
         }
-        tasks.matching { it.name.startsWith("package${variant.name.capitalize()}") }.configureEach {
+        tasks.matching { it.name.startsWith("package${variantCapitalized}") }.configureEach {
             dependsOn alignTask
         }
     }
