@@ -37,6 +37,15 @@ interface ContactDao {
 }
 
 @Dao
+interface MetricSampleDao {
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertMetricSample(sample: MetricSampleEntity)
+
+    @Query("SELECT * FROM metric_samples WHERE tripId = :tripId ORDER BY ts ASC")
+    suspend fun getSamplesForTrip(tripId: String): List<MetricSampleEntity>
+}
+
+@Dao
 interface SettingsDao {
     @Query("SELECT * FROM settings WHERE id = 'default_settings'")
     suspend fun getSettings(): SettingsEntity?

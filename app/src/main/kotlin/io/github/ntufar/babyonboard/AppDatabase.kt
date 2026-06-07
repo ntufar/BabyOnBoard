@@ -4,6 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import io.github.ntufar.babyonboard.data.db.ContactDao
 import io.github.ntufar.babyonboard.data.db.EventDao
+import io.github.ntufar.babyonboard.data.db.MetricSampleDao
 import io.github.ntufar.babyonboard.data.db.SettingsDao
 import io.github.ntufar.babyonboard.data.db.TripDao
 import io.github.ntufar.babyonboard.data.model.ContactEntity
@@ -24,4 +25,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun eventDao(): EventDao
     abstract fun contactDao(): ContactDao
     abstract fun settingsDao(): SettingsDao
+    abstract fun metricSampleDao(): MetricSampleDao
 }
