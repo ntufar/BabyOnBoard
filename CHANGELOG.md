@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.0.8] - 2026-06-07
+
+### Added
+- **MetricSample writing** — every sensor frame is now persisted to the `metric_samples` table; `TripRepository` exposes `saveMetricSample()`, `TripRepositoryImpl` maps the domain model to `MetricSampleEntity` with a generated UUID, and `TripForegroundService` calls it on each telemetry frame via an injected `TripRepository` (service annotated `@AndroidEntryPoint`)
+
+### Fixed
+- `TripRepositoryImpl` constructor arity mismatch — `AppModule` was passing a stale 5-argument call after an earlier refactor removed `metricSampleDao`; constructor and provider are now in sync
+
+### Changed
+- DB passphrase bytes zeroed immediately after `SupportFactory` consumes them, closing the plaintext heap window
+- AndroidKeystore AES key upgraded from default 128-bit to 256-bit
+
 ## [0.0.7] - 2026-06-07
 
 ### Fixed
