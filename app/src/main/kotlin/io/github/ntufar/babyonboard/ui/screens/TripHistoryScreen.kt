@@ -1,5 +1,6 @@
 package io.github.ntufar.babyonboard.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,6 +12,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -92,12 +99,138 @@ fun TripHistoryScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                item(key = "trend_chart") {
+                    ScoreTrendChart(trips = trips)
+                }
                 items(trips, key = { trip -> trip.id }) { trip ->
                     TripCard(
                         trip = trip,
                         onClick = { onTripSelected(trip) }
                     )
                 }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScoreTrendChart(trips: List<Trip>) {
+    val dataPoints = trips.sortedBy { it.startTs }.takeLast(10)
+    if (dataPoints.size < 2) return
+
+    val primaryColor = MaterialTheme.colorScheme.primary
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    val errorColor = MaterialTheme.colorScheme.error
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+    val avgScore = dataPoints.map { it.score }.average().toInt()
+
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Score Trend",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "avg $avgScore/100",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Canvas(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+            ) {
+                val padL = 8.dp.toPx()
+                val padR = 8.dp.toPx()
+                val padT = 8.dp.toPx()
+                val padB = 8.dp.toPx()
+                val chartW = size.width - padL - padR
+                val chartH = size.height - padT - padB
+                val n = dataPoints.size
+
+                // Threshold guide lines at 60 and 80
+                val dash = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 4.dp.toPx()))
+                listOf(60f to tertiaryColor, 80f to primaryColor).forEach { (threshold, color) ->
+                    val y = padT + chartH * (1f - threshold / 100f)
+                    drawLine(
+                        color = color.copy(alpha = 0.25f),
+                        start = Offset(padL, y),
+                        end = Offset(size.width - padR, y),
+                        strokeWidth = 1.dp.toPx(),
+                        pathEffect = dash
+                    )
+                }
+
+                // Compute screen positions
+                val pts = dataPoints.mapIndexed { i, trip ->
+                    val x = padL + i * chartW / (n - 1).toFloat()
+                    val y = padT + chartH * (1f - trip.score / 100f)
+                    Offset(x, y)
+                }
+
+                // Connecting line
+                val linePath = Path().apply {
+                    pts.forEachIndexed { i, pt ->
+                        if (i == 0) moveTo(pt.x, pt.y) else lineTo(pt.x, pt.y)
+                    }
+                }
+                drawPath(
+                    path = linePath,
+                    color = onSurfaceVariant.copy(alpha = 0.4f),
+                    style = Stroke(
+                        width = 2.dp.toPx(),
+                        cap = StrokeCap.Round,
+                        join = StrokeJoin.Round
+                    )
+                )
+
+                // Data point dots
+                dataPoints.forEachIndexed { i, trip ->
+                    val dotColor = when {
+                        trip.score >= 80 -> primaryColor
+                        trip.score >= 60 -> tertiaryColor
+                        else -> errorColor
+                    }
+                    drawCircle(color = dotColor, radius = 4.dp.toPx(), center = pts[i])
+                    drawCircle(
+                        color = dotColor.copy(alpha = 0.2f),
+                        radius = 7.dp.toPx(),
+                        center = pts[i]
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = "oldest",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onSurfaceVariant
+                )
+                Text(
+                    text = "${dataPoints.size} trips",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onSurfaceVariant
+                )
+                Text(
+                    text = "latest",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onSurfaceVariant
+                )
             }
         }
     }

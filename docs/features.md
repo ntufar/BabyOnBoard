@@ -27,7 +27,7 @@ Legend: [x] Done | [-] Partial | [ ] Not started
 ## 4.3 Feedback & History
 
 - [x] FR-13 Calm, non-punitive post-trip feedback — `TripSummaryScreen` shows score + events
-- [-] FR-14 Trip history with trend — `TripHistoryScreen` exists (basic list); trend/graph missing
+- [x] FR-14 Trip history with trend — `TripHistoryScreen` shows `ScoreTrendChart` (Canvas line chart, last 10 trips, coloured dots, threshold guide lines)
 - [ ] FR-15 Gamification — Deferred to v1.1
 
 ## 4.4 Distraction Reduction
