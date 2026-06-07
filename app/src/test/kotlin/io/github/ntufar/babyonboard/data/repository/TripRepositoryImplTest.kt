@@ -28,7 +28,7 @@ class TripRepositoryImplTest {
             AppDatabase::class.java
         ).allowMainThreadQueries().build()
         repository = TripRepositoryImpl(
-            db.tripDao(), db.eventDao(), db.contactDao(), db.settingsDao()
+            db.tripDao(), db.eventDao(), db.contactDao(), db.settingsDao(), db.metricSampleDao()
         )
     }
 
