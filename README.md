@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="web/icon.svg" alt="Baby on Board icon" width="120">
+</p>
+
 # Baby on Board — Safe-Driving Telemetry for Families
 
 Baby on Board is an Android-native application designed to provide parents and caregivers with clear, non-judgmental telemetry on driving smoothness and safety. By utilizing on-device sensor fusion (GNSS, accelerometer, gyroscope), the app transforms raw motion data into meaningful insights, specifically tailored for those carrying children.

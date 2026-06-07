@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="216" height="216" viewBox="0 0 216 216">
+  <defs>
+    <clipPath id="mask">
+      <rect x="0" y="0" width="216" height="216" rx="48"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#mask)">
+    <rect width="216" height="216" fill="#4F46E5"/>
+    <g transform="translate(112,104)">
+      <path d="M0,-38 L38,-28 L38,-4 C38,14 22,26 0,32 C-22,26 -38,14 -38,-4 L-38,-28 Z
+               M0,-14 C0,-14 -10,-22 -16,-18 C-22,-14 -22,-6 -16,-2 L0,12 L16,-2 C22,-6 22,-14 16,-18 C10,-22 0,-14 0,-14 Z"
+            fill="white" fill-rule="evenodd"/>
+    </g>
+  </g>
+</svg>
