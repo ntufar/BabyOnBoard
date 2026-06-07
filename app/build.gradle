@@ -19,9 +19,9 @@ android {
 
     signingConfigs {
         release {
-            def props = new Properties()
             def propsFile = rootProject.file('keystore.properties')
             if (propsFile.exists()) {
+                def props = new Properties()
                 props.load(new FileInputStream(propsFile))
                 storeFile rootProject.file(props['storeFile'])
                 storePassword props['storePassword']
@@ -33,7 +33,9 @@ android {
 
     buildTypes {
         release {
-            signingConfig signingConfigs.release
+            if (rootProject.file('keystore.properties').exists()) {
+                signingConfig signingConfigs.release
+            }
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
