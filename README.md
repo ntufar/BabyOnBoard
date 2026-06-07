@@ -33,7 +33,7 @@ Baby on Board is an Android-native application that uses on-device sensor fusion
 ## Screenshot
 
 <p align="center">
-  <img src="web/screensot-1.jpeg" alt="Baby on Board app screenshot" width="300">
+  <img src="web/screenshot-1.jpeg" alt="Baby on Board app screenshot" width="300">
 </p>
 
 ## Tech Stack
