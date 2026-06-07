@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.3] - 2026-06-07
+
+### Added
+- **Full Settings screen** — auto-start trip toggle, units selector (km/mi), data retention period (7–90 days), reminder escalation level (1–3 alerts)
+- **Emergency Contacts management** — add/delete contacts with name, phone, and role (emergency/arrival) via dialog; persisted in Room DB
+- `ContactDao.deleteContact()` — remove contacts by ID
+- `SettingsViewModel` — exposes `contacts` StateFlow, `addContact()`, `deleteContact()`
+
+### Changed
+- `SettingsScreen.kt` — complete rewrite: scrollable `LazyColumn` with grouped sections (Trip & Recording, Safety & Alerts, Data Management, Emergency Contacts)
+- `TripRepository` — added `deleteContact()` interface method
+- `TripRepositoryImpl` — wired `deleteContact()` to `ContactDao`
+
 ## [0.0.1] - 2026-06-07
 
 ### Added

@@ -85,4 +85,8 @@ class TripRepositoryImpl(
             Contact(entity.id, entity.name, entity.phone, ContactRole.valueOf(entity.role), entity.consentTs)
         }
     }
+
+    override suspend fun deleteContact(contactId: String) {
+        contactDao.deleteContact(contactId)
+    }
 }

@@ -14,4 +14,5 @@ interface TripRepository {
     suspend fun getSettings(): Settings
     suspend fun saveContact(contact: Contact)
     suspend fun getContacts(): List<Contact>
+    suspend fun deleteContact(contactId: String)
 }
