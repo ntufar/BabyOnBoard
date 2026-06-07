@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.0.5] - 2026-06-07
+
+### Added
+- **Store listing assets** — launcher icons for all densities (mdpi–xxxhdpi), 512×512 Play Store icon, 1024×500 feature graphic
+- **Play Store description** — plain text full description compliant with Google Play metadata policy
+- **Google Play badge** — added to README and web page, linking to store listing
+- **Website badge** — added to README badge row, linking to GitHub Pages
+
+### Changed
+- Updated web page version from v0.0.4 to v0.0.5
+- Fixed screenshot filename typo (screensot → screenshot)
+- Updated targetSdk badge from 34 to 35 in README
+
 ## [0.0.4] - 2026-06-07
 
 ### Added
