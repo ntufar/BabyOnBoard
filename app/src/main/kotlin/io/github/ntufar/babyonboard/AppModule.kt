@@ -39,6 +39,7 @@ object AppModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         val passphrase = getDatabasePassphrase(context)
         val factory = SupportFactory(passphrase)
+        passphrase.fill(0)
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
@@ -59,6 +60,7 @@ object AppModule {
                 )
                     .setBlockModes(KeyProperties.BLOCK_MODE_GCM)
                     .setEncryptionPaddings(KeyProperties.ENCRYPTION_PADDING_NONE)
+                    .setKeySize(256)
                     .build()
             )
             keyGenerator.generateKey()

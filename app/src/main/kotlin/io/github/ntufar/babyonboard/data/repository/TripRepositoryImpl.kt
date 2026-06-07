@@ -2,17 +2,20 @@ package io.github.ntufar.babyonboard.data.repository
 
 import io.github.ntufar.babyonboard.data.db.ContactDao
 import io.github.ntufar.babyonboard.data.db.EventDao
+import io.github.ntufar.babyonboard.data.db.MetricSampleDao
 import io.github.ntufar.babyonboard.data.db.SettingsDao
 import io.github.ntufar.babyonboard.data.db.TripDao
 import io.github.ntufar.babyonboard.data.model.*
 import io.github.ntufar.babyonboard.domain.model.*
 import io.github.ntufar.babyonboard.domain.repository.TripRepository
+import java.util.UUID
 
 class TripRepositoryImpl(
     private val tripDao: TripDao,
     private val eventDao: EventDao,
     private val contactDao: ContactDao,
-    private val settingsDao: SettingsDao
+    private val settingsDao: SettingsDao,
+    private val metricSampleDao: MetricSampleDao
 ) : TripRepository {
 
     override suspend fun saveTrip(trip: Trip) {
@@ -20,6 +23,20 @@ class TripRepositoryImpl(
             trip.id, trip.startTs, trip.endTs, trip.distanceM,
             trip.durationS, trip.avgSpeed, trip.maxSpeed,
             trip.score, trip.babyMode, trip.routeRef
+        ))
+    }
+
+    override suspend fun saveMetricSample(sample: MetricSample) {
+        metricSampleDao.insertMetricSample(MetricSampleEntity(
+            id = UUID.randomUUID().toString(),
+            tripId = sample.tripId,
+            ts = sample.ts,
+            speed = sample.speed,
+            longAccel = sample.longAccel,
+            latAccel = sample.latAccel,
+            vertAccel = sample.vertAccel,
+            yawRate = sample.yawRate,
+            altitude = sample.altitude
         ))
     }
 

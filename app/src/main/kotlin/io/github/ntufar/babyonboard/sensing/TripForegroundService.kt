@@ -9,7 +9,10 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
+import dagger.hilt.android.AndroidEntryPoint
 import io.github.ntufar.babyonboard.MainActivity
+import io.github.ntufar.babyonboard.domain.model.MetricSample
+import io.github.ntufar.babyonboard.domain.repository.TripRepository
 import io.github.ntufar.babyonboard.domain.usecase.EvaluateCrashUseCase
 import io.github.ntufar.babyonboard.sensing.engine.TelemetryEngine
 import io.github.ntufar.babyonboard.sensing.sources.DistractionSource
@@ -17,9 +20,13 @@ import io.github.ntufar.babyonboard.sensing.sources.LocationSource
 import io.github.ntufar.babyonboard.sensing.sources.MotionSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.combine
+import javax.inject.Inject
 import kotlin.math.abs
 
+@AndroidEntryPoint
 class TripForegroundService : Service() {
+
+    @Inject lateinit var tripRepository: TripRepository
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
     private lateinit var telemetryEngine: TelemetryEngine
     private lateinit var locationSource: LocationSource
@@ -73,6 +80,18 @@ class TripForegroundService : Service() {
                 )
             }.collect { data ->
                 val frame = telemetryEngine.processRawData(data)
+                serviceScope.launch {
+                    tripRepository.saveMetricSample(MetricSample(
+                        tripId = tripId,
+                        ts = frame.timestamp,
+                        speed = frame.speed,
+                        longAccel = frame.longAccel,
+                        latAccel = frame.latAccel,
+                        vertAccel = frame.vertAccel,
+                        yawRate = frame.yawRate,
+                        altitude = frame.altitude
+                    ))
+                }
                 val events = telemetryEngine.detectEvents(frame, tripId)
 
                 val extendedEvents = telemetryEngine.detectExtendedEvents(frame, tripId)
