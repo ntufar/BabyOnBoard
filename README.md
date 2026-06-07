@@ -10,6 +10,7 @@
   <a href="https://github.com/ntufar/BabyOnBoard/actions/workflows/ci.yml"><img src="https://github.com/ntufar/BabyOnBoard/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/ntufar/BabyOnBoard/actions/workflows/release.yml"><img src="https://github.com/ntufar/BabyOnBoard/actions/workflows/release.yml/badge.svg" alt="Release"></a>
   <a href="https://github.com/ntufar/BabyOnBoard/actions/workflows/deploy-web.yml"><img src="https://github.com/ntufar/BabyOnBoard/actions/workflows/deploy-web.yml/badge.svg" alt="Pages"></a>
+  <a href="https://ntufar.github.io/BabyOnBoard/"><img src="https://img.shields.io/badge/website-4F46E5?logo=google-chrome&logoColor=white" alt="Website"></a>
   <a href="https://play.google.com/store/apps/details?id=io.github.ntufar.babyonboard"><img src="https://img.shields.io/badge/Google_Play-414141?logo=google-play&logoColor=white" alt="Google Play"></a>
   <img src="https://img.shields.io/badge/Kotlin-1.9.20-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 1.9.20">
   <img src="https://img.shields.io/badge/minSdk-26-3DDC84?logo=android&logoColor=white" alt="minSdk 26">
