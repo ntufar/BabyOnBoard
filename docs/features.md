@@ -136,6 +136,15 @@ Prioritized by impact vs. effort.
 
 ### Analytics & UI
 
-- [ ] #26 Score breakdown in TripSummaryScreen — show per-event-type deduction breakdown (e.g. "3 hard brakes −30 pts") so feedback is actionable
+- [x] #26 Score breakdown in TripSummaryScreen — `ScoreBreakdownCard` shows per-event-type deduction breakdown (e.g. "3× hard brake −30 pts"); computed by `computeScoreBreakdown()` using proportional split of total deduction across event types
 - [ ] #27 Route map in TripSummaryScreen — render the GPS track from `MetricSample` coordinates using a lightweight map (Maps Compose or OSM)
 - [ ] #28 Weekly summary notification — Sunday push notification with average score, trip count, and trend vs. previous week
+
+### New Ideas (v1.2+)
+
+- [ ] #29 Per-seat driving profiles — allow multiple named profiles (e.g. "School run", "Grandma") with independent sensitivity settings and SOS contacts; extends `Settings` model with a profile list
+- [ ] #30 Cabin noise / comfort score — sample microphone amplitude (no recording) to flag excessive road noise or music volume; entirely on-device; stored as an extended metric alongside roughness
+- [ ] #31 Per-route roughness comparison — aggregate roughness events by GPS corridor from `MetricSample`; surface "this route was 20% rougher than usual" in TripSummaryScreen
+- [ ] #32 Pre-trip vehicle check reminder — scheduled notification before the user's typical departure time (learned from trip history) to check car seat installation
+- [ ] #33 Bluetooth car seat pairing → auto Baby Mode — on BT device connect matching a saved device ID, automatically enable Baby Mode; simpler first step toward FR-11 auto-suggest
+- [ ] #34 Contextual drive-time tips — display a single actionable tip on trip end based on top event type (e.g. "3 hard brakes — try coasting earlier"); purely in-app, no network

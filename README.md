@@ -24,7 +24,7 @@ Baby on Board is an Android-native application that uses on-device sensor fusion
 
 - **Driving Telemetry Engine** — Real-time monitoring of speed, hard braking, hard acceleration, and cornering via sensor fusion.
 - **Baby Mode** — User-activated stricter safety thresholds that prioritize smoothness and jerk reduction for infant comfort.
-- **Safe-Driving Score** — 0–100 score computed from harsh-event rate per 100 km, jerk, and speed smoothness; normalized by trip distance.
+- **Safe-Driving Score** — 0–100 score computed from harsh-event rate per 100 km; post-trip breakdown card shows per-event-type deductions (e.g. "3× hard brake −30 pts") so feedback is actionable.
 - **Crash Detection & SOS** — Best-effort crash detection with a user-cancellable 60-second countdown before alerting emergency contacts and dialing 112.
 - **Back-Seat Reminder** — A prominent "check the back seat" notification at trip end when Baby Mode was active; a backstop, not a guarantee.
 - **Encrypted Storage** — All trip data encrypted at rest via SQLCipher.
@@ -70,7 +70,7 @@ app/
 
 - **Unit tests** — `EvaluateCrashUseCase`, `TelemetryEngine`, `SensorEmulation`, ViewModels (Robolectric).
 - **CI** — Every push runs lint, unit tests, and debug build via GitHub Actions.
-- **Coverage** — 99 tests covering crash detection, sensor fusion, back-seat reminder, and scoring.
+- **Coverage** — 107 tests covering crash detection, sensor fusion, back-seat reminder, scoring, and score breakdown.
 
 ## Getting Started
 

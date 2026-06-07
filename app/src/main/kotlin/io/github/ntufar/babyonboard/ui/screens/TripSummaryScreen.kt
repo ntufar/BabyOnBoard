@@ -12,8 +12,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import io.github.ntufar.babyonboard.domain.model.EventType
 import io.github.ntufar.babyonboard.domain.model.TelemetryEvent
 import io.github.ntufar.babyonboard.domain.model.Trip
+import kotlin.math.roundToInt
 
 @Composable
 fun TripSummaryScreen(
@@ -29,6 +31,7 @@ fun TripSummaryScreen(
     val distFormat = if (units == "mi") "%.2f".format(displayDist) else "${trip.distanceM.toInt()}"
 
     val harshEvents = events.count { it.severity > 0.5f }
+    val breakdown = computeScoreBreakdown(events, trip.score)
 
     Column(
         modifier = Modifier
@@ -78,6 +81,8 @@ fun TripSummaryScreen(
                 )
             }
         }
+
+        ScoreBreakdownCard(breakdown)
 
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -199,4 +204,77 @@ private fun formatDurationShort(seconds: Long): String {
     val s = seconds % 60
     return if (h > 0) "%dh %02dm".format(h, m)
     else "%dm %02ds".format(m, s)
+}
+
+internal data class EventTypeDeduction(
+    val type: EventType,
+    val count: Int,
+    val deductionPts: Int
+)
+
+internal fun computeScoreBreakdown(
+    events: List<TelemetryEvent>,
+    score: Int
+): List<EventTypeDeduction> {
+    val harsh = events.filter { it.severity > 0.5f }
+    if (harsh.isEmpty()) return emptyList()
+    val totalDeduction = (100 - score).coerceIn(0, 100)
+    val harshCount = harsh.size
+    return harsh
+        .groupBy { it.type }
+        .map { (type, typeEvents) ->
+            val pts = ((typeEvents.size.toFloat() / harshCount) * totalDeduction).roundToInt()
+            EventTypeDeduction(type, typeEvents.size, pts)
+        }
+        .filter { it.deductionPts > 0 }
+        .sortedByDescending { it.deductionPts }
+}
+
+@Composable
+private fun ScoreBreakdownCard(breakdown: List<EventTypeDeduction>) {
+    if (breakdown.isEmpty()) return
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Text(
+                text = "Score Breakdown",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(modifier = Modifier.height(2.dp))
+            breakdown.forEach { item ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "${item.count}× ${eventTypeLabel(item.type)}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Text(
+                        text = "−${item.deductionPts} pts",
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun eventTypeLabel(type: EventType) = when (type) {
+    EventType.BRAKE -> "hard brake"
+    EventType.ACCEL -> "hard acceleration"
+    EventType.CORNER -> "sharp corner"
+    EventType.SWERVE -> "swerve"
+    EventType.ROUGH -> "rough road"
+    EventType.SPEED -> "speeding"
+    EventType.PHONE_USE -> "phone use"
+    EventType.CRASH -> "crash"
 }
