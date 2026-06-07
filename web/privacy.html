@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy — Baby on Board</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 antialiased">
+    <nav class="bg-blue-600 p-4 text-white shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <a href="index.html" class="text-xl font-bold tracking-tight">Baby on Board</a>
+            <span class="text-sm text-blue-100">v0.0.2 &middot; Android</span>
+        </div>
+    </nav>
+
+    <main class="container mx-auto px-6 py-12 max-w-3xl">
+        <h1 class="text-3xl font-bold mb-2">Privacy Policy</h1>
+        <p class="text-sm text-gray-500 mb-8">Last updated: June 7, 2026</p>
+
+        <section class="space-y-6 text-gray-700 leading-relaxed">
+
+            <p>
+                Baby on Board is designed with privacy as a core principle. All sensor processing
+                happens on your device. No raw sensor data is transmitted, collected, or shared
+                by the app.
+            </p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Data We Collect</h2>
+            <p>Baby on Board does <strong>not</strong> collect any personal data. The app operates
+                entirely on-device and does not transmit information to remote servers.</p>
+            <ul class="list-disc pl-6 space-y-1">
+                <li><strong>No account required.</strong> You do not need to register or sign in.</li>
+                <li><strong>No analytics or crash reporting.</strong> The app does not use any
+                    third-party analytics, telemetry, or error-reporting SDKs.</li>
+                <li><strong>No advertising.</strong> The app contains no ads and no ad SDKs.</li>
+            </ul>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Sensor Data</h2>
+            <p>The app uses the following device sensors exclusively for on-device driving
+                telemetry:</p>
+            <ul class="list-disc pl-6 space-y-1">
+                <li><strong>GNSS (GPS)</strong> &mdash; Used to calculate speed, distance, and
+                    route smoothness. Location data is processed in real time and is not stored
+                    as raw coordinates. Only derived metrics (speed, distance) are saved locally.</li>
+                <li><strong>Accelerometer &amp; Gyroscope</strong> &mdash; Used to detect harsh
+                    events (braking, acceleration, cornering) and for crash detection. Raw
+                    accelerometer and gyroscope readings are processed in real time and never
+                    persisted or transmitted.</li>
+                <li><strong>Rotation Vector Sensor</strong> &mdash; Used to transform acceleration
+                    data from device coordinates to world coordinates. Processed ephemerally and
+                    discarded immediately.</li>
+            </ul>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Local Storage</h2>
+            <p>Trip history and settings are stored locally on your device using:</p>
+            <ul class="list-disc pl-6 space-y-1">
+                <li><strong>Room database</strong> encrypted with SQLCipher (AES-256).</li>
+                <li><strong>DataStore Preferences</strong> for app settings (e.g., Baby Mode toggle,
+                    emergency contact).</li>
+            </ul>
+            <p>You can export your trip data or delete it at any time from the app settings.</p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Crash Detection &amp; SOS</h2>
+            <p>Crash detection is a best-effort on-device feature. If a potential crash is
+                detected:</p>
+            <ul class="list-disc pl-6 space-y-1">
+                <li>A 60-second user-cancellable countdown begins on your device.</li>
+                <li>If the countdown expires, the app opens the device dialer with
+                    emergency number 112 pre-filled. <strong>No call is placed automatically;</strong>
+                    you must manually initiate the call.</li>
+                <li>No crash data is transmitted to any server.</li>
+            </ul>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Notifications</h2>
+            <p>The app uses local notifications for trip status, back-seat reminders, and
+                crash alerts. These notifications are generated entirely on-device and do not
+                involve remote servers.</p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Data Sharing</h2>
+            <p>Baby on Board does <strong>not</strong> share any data with third parties.
+                The app does not transmit, sell, or otherwise disclose your information to
+                any external service, organization, or individual.</p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Data Retention &amp; Deletion</h2>
+            <p>Trip history is retained locally until you choose to delete it. You can delete
+                individual trips or all data from the app settings. Deleting the app from your
+                device removes all locally stored data.</p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Children's Privacy</h2>
+            <p>The app is designed for use by adults (parents and caregivers). It does not
+                knowingly collect any personal information from children. Baby Mode is a
+                user-activated driving profile, not a child-detection feature.</p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Changes to This Policy</h2>
+            <p>If this privacy policy changes, the updated version will be posted on this page
+                with a new "Last updated" date.</p>
+
+            <h2 class="text-xl font-semibold text-gray-900 mt-8">Contact</h2>
+            <p>If you have questions about this privacy policy, please open an issue on
+                <a href="https://github.com/ntufar/BabyOnBoard" class="text-blue-600 underline">GitHub</a>.</p>
+
+        </section>
+    </main>
+
+    <footer class="text-center text-gray-400 text-sm pb-8">
+        &copy; 2026 Baby on Board &mdash; Safe-Driving Telemetry for Families
+    </footer>
+</body>
+</html>
