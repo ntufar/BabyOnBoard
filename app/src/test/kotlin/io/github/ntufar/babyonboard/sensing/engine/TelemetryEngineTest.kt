@@ -247,15 +247,9 @@ class TelemetryEngineTest {
 
     @Test
     fun `calculateScore deducts 10 per harsh event per 100km`() {
-        val events = listOf(
-            TelemetryEventStub(severity = 0.8f, value = 4.0),
-            TelemetryEventStub(severity = 0.9f, value = 5.0)
-        )
         // 2 events over 100km → 2 * 10 = 20 deduction → 80
-        val score = normalEngine.calculateScore(events(2), distanceM = 100000.0)
-        // events list maps through the stubs
         val actual = normalEngine.calculateScore(
-            events.map { it.toTelemetryEvent("t", "t") },
+            events(2),
             distanceM = 100000.0
         )
         assertThat(actual).isEqualTo(80)
@@ -274,6 +268,39 @@ class TelemetryEngineTest {
     fun `calculateScore returns 100 for events within 100km when none`() {
         val score = normalEngine.calculateScore(emptyList(), distanceM = 50000.0)
         assertThat(score).isEqualTo(100)
+    }
+
+    // ─── RawSensorData rotationVector ─────────────────────────────────────
+
+    @Test
+    fun `RawSensorData accepts rotation vector`() {
+        val rv = floatArrayOf(0.5f, -0.5f, 0.5f, 0.5f)
+        val data = rawData().copy(rotationVector = rv)
+        assertThat(data.rotationVector).isNotNull()
+        assertThat(data.rotationVector).hasLength(4)
+    }
+
+    @Test
+    fun `rotationVector is null by default`() {
+        val data = rawData()
+        assertThat(data.rotationVector).isNull()
+    }
+
+    @Test
+    fun `TelemetryFrame does not carry rotationVector`() {
+        val data = rawData(longAccel = 1.0).copy(rotationVector = floatArrayOf(0.5f, -0.5f, 0.5f, 0.5f))
+        val frame = normalEngine.processRawData(data)
+        // TelemetryFrame is a processed snapshot, rotation is applied upstream
+        assertThat(frame.longAccel).isEqualTo(1.0)
+    }
+
+    @Test
+    fun `rotation vector with identity values produces same accel after manual rotation`() {
+        // Identity rotation: [1, 0, 0, 0] — no rotation
+        val rv = floatArrayOf(1f, 0f, 0f, 0f)
+        val data = rawData(longAccel = 3.0, latAccel = 0.0).copy(rotationVector = rv)
+        val frame = normalEngine.processRawData(data)
+        assertThat(frame.longAccel).isEqualTo(3.0)
     }
 
     // ─── scores match babyMode thresholds ─────────────────────────────────

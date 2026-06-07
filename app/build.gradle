@@ -70,6 +70,10 @@ dependencies {
     implementation "androidx.room:room-common:2.6.1"
     kapt "androidx.room:room-compiler:2.6.1"
     implementation "androidx.datastore:datastore-preferences:1.0.0"
+
+    // SQLCipher for Room encryption
+    implementation "net.zetetic:android-database-sqlcipher:4.5.0"
+    implementation "androidx.sqlite:sqlite-ktx:2.4.0"
     
     // Hilt
     implementation "com.google.dagger:hilt-android:2.48"

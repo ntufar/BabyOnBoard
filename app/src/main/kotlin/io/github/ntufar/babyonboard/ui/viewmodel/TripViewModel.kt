@@ -1,9 +1,13 @@
 package io.github.ntufar.babyonboard.ui.viewmodel
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import androidx.core.app.NotificationCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -122,6 +126,7 @@ class TripViewModel @Inject constructor(
 
     fun endTrip() {
         timerJob?.cancel()
+        val wasBabyMode = _currentTrip.value?.babyMode == true
         stopForegroundService()
         viewModelScope.launch {
             val trip = _currentTrip.value ?: return@launch
@@ -135,7 +140,33 @@ class TripViewModel @Inject constructor(
             repository.updateTrip(updated)
             _currentTrip.value = updated
             loadTripHistory()
+            if (wasBabyMode) {
+                showBackSeatReminder()
+            }
         }
+    }
+
+    private fun showBackSeatReminder() {
+        val channelId = "back_seat_reminder"
+        val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val channel = NotificationChannel(
+            channelId, "Back-Seat Reminder", NotificationManager.IMPORTANCE_HIGH
+        )
+        manager.createNotificationChannel(channel)
+        val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+        val pendingIntent = PendingIntent.getActivity(
+            context, 0, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentTitle("Check the Back Seat!")
+            .setContentText("Baby mode was active — make sure everyone is out of the car.")
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .build()
+        manager.notify(1001, notification)
     }
 
     fun refreshHistory() {

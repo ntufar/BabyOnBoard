@@ -146,6 +146,23 @@ class SensorEmulationTest {
     }
 
     @Test
+    fun `emulated data can carry rotation vector`() {
+        val data = smoothHighwayData().copy(
+            rotationVector = floatArrayOf(1f, 0f, 0f, 0f)
+        )
+        assertThat(data.rotationVector).isNotNull()
+        assertThat(data.rotationVector!!.size).isAtLeast(3)
+    }
+
+    @Test
+    fun `crash scenario carries rotation vector`() {
+        val impact = crashScenario(1).copy(
+            rotationVector = floatArrayOf(0.7f, -0.2f, 0.3f, 0.6f)
+        )
+        assertThat(impact.rotationVector).isNotNull()
+    }
+
+    @Test
     fun `emulated data preserves timestamp order`() {
         val scenarios = listOf(
             smoothHighwayData(ts = 1000L),

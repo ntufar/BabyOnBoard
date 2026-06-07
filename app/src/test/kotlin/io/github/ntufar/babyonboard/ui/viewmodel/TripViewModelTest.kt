@@ -1,5 +1,6 @@
 package io.github.ntufar.babyonboard.ui.viewmodel
 
+import android.content.Context
 import com.google.common.truth.Truth.assertThat
 import io.github.ntufar.babyonboard.domain.model.Trip
 import io.github.ntufar.babyonboard.domain.repository.TripRepository
@@ -16,8 +17,14 @@ import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.RuntimeEnvironment
+import org.robolectric.annotation.Config
 
 @OptIn(ExperimentalCoroutinesApi::class)
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
 class TripViewModelTest {
 
     private val testDispatcher = StandardTestDispatcher()
@@ -40,9 +47,13 @@ class TripViewModelTest {
         return repo
     }
 
+    private fun createContext(): Context {
+        return RuntimeEnvironment.getApplication()
+    }
+
     private fun createViewModel(repo: TripRepository = createRepository()) = TripViewModel(
         repo,
-        mockk(relaxed = true)
+        createContext()
     )
 
     @Test
@@ -124,6 +135,32 @@ class TripViewModelTest {
         advanceUntilIdle()
 
         assertThat(viewModel.tripHistory.value).hasSize(1)
+    }
+
+    @Test
+    fun `endTrip with babyMode sends notification without error`() = runTest(testDispatcher) {
+        val repo = createRepository()
+        val viewModel = TripViewModel(repo, RuntimeEnvironment.getApplication()).apply { startTimerOnTripStart = false }
+        viewModel.startTrip(babyMode = true)
+        advanceUntilIdle()
+
+        viewModel.endTrip()
+        advanceUntilIdle()
+
+        coVerify { repo.updateTrip(any()) }
+    }
+
+    @Test
+    fun `endTrip without babyMode completes without error`() = runTest(testDispatcher) {
+        val repo = createRepository()
+        val viewModel = TripViewModel(repo, RuntimeEnvironment.getApplication()).apply { startTimerOnTripStart = false }
+        viewModel.startTrip(babyMode = false)
+        advanceUntilIdle()
+
+        viewModel.endTrip()
+        advanceUntilIdle()
+
+        coVerify { repo.updateTrip(any()) }
     }
 
     @Test

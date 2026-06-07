@@ -5,15 +5,18 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
 import android.content.Intent
+import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import io.github.ntufar.babyonboard.MainActivity
+import io.github.ntufar.babyonboard.domain.usecase.EvaluateCrashUseCase
 import io.github.ntufar.babyonboard.sensing.engine.TelemetryEngine
 import io.github.ntufar.babyonboard.sensing.sources.LocationSource
 import io.github.ntufar.babyonboard.sensing.sources.MotionSource
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.combine
+import kotlin.math.abs
 
 class TripForegroundService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
@@ -21,6 +24,11 @@ class TripForegroundService : Service() {
     private lateinit var locationSource: LocationSource
     private lateinit var motionSource: MotionSource
     private var tripId: String = ""
+
+    private val speedHistory = mutableListOf<Double>()
+    private val accelHistory = mutableListOf<Double>()
+    private val crashUseCase = EvaluateCrashUseCase()
+    private var crashAlerted = false
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -33,6 +41,7 @@ class TripForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val babyMode = intent?.getBooleanExtra(EXTRA_BABY_MODE, true) ?: true
         tripId = intent?.getStringExtra(EXTRA_TRIP_ID) ?: "unknown"
+        crashAlerted = false
 
         telemetryEngine = TelemetryEngine(babyMode = babyMode)
         locationSource.start()
@@ -43,15 +52,41 @@ class TripForegroundService : Service() {
 
         serviceScope.launch {
             locationSource.locationFlow.combine(motionSource.sensorFlow) { loc, motion ->
+                val (worldLong, worldLat, worldVert) = if (motion.rotationVector != null) {
+                    rotateToWorldFrame(
+                        motion.longAccel, motion.latAccel, motion.vertAccel,
+                        motion.rotationVector!!
+                    )
+                } else {
+                    Triple(motion.longAccel, motion.latAccel, motion.vertAccel)
+                }
                 loc.copy(
-                    latAccel = motion.latAccel,
-                    longAccel = motion.longAccel,
-                    vertAccel = motion.vertAccel,
+                    latAccel = worldLat,
+                    longAccel = worldLong,
+                    vertAccel = worldVert,
                     yawRate = motion.yawRate
                 )
             }.collect { data ->
                 val frame = telemetryEngine.processRawData(data)
                 val events = telemetryEngine.detectEvents(frame, tripId)
+
+                speedHistory.add(data.speed)
+                accelHistory.add(abs(data.longAccel))
+                if (speedHistory.size > 30) speedHistory.removeAt(0)
+                if (accelHistory.size > 30) accelHistory.removeAt(0)
+
+                if (!crashAlerted && speedHistory.size >= 5) {
+                    val assessment = crashUseCase.execute(speedHistory, accelHistory)
+                    if (assessment.isCrashDetected) {
+                        crashAlerted = true
+                        val crashIntent = Intent(ACTION_CRASH_DETECTED).apply {
+                            putExtra(EXTRA_CONFIDENCE, assessment.confidence)
+                            putExtra(EXTRA_LAT, data.lat)
+                            putExtra(EXTRA_LNG, data.lng)
+                        }
+                        sendBroadcast(crashIntent)
+                    }
+                }
 
                 val speedIntent = Intent(ACTION_SPEED_UPDATE).apply {
                     putExtra(EXTRA_SPEED, data.speed * 3.6)
@@ -107,6 +142,20 @@ class TripForegroundService : Service() {
             .build()
     }
 
+    private fun rotateToWorldFrame(
+        longAccel: Double, latAccel: Double, vertAccel: Double,
+        rotationVector: FloatArray
+    ): Triple<Double, Double, Double> {
+        val rotationMatrix = FloatArray(9)
+        SensorManager.getRotationMatrixFromVector(rotationMatrix, rotationVector)
+        val device = floatArrayOf(longAccel.toFloat(), latAccel.toFloat(), vertAccel.toFloat())
+        val world = FloatArray(3)
+        world[0] = rotationMatrix[0] * device[0] + rotationMatrix[1] * device[1] + rotationMatrix[2] * device[2]
+        world[1] = rotationMatrix[3] * device[0] + rotationMatrix[4] * device[1] + rotationMatrix[5] * device[2]
+        world[2] = rotationMatrix[6] * device[0] + rotationMatrix[7] * device[1] + rotationMatrix[8] * device[2]
+        return Triple(world[0].toDouble(), world[1].toDouble(), world[2].toDouble())
+    }
+
     companion object {
         const val CHANNEL_ID = "trip_recording"
         const val NOTIFICATION_ID = 1
@@ -119,5 +168,9 @@ class TripForegroundService : Service() {
         const val EXTRA_EVENT_SEVERITY = "event_severity"
         const val ACTION_SPEED_UPDATE = "io.github.ntufar.babyonboard.SPEED_UPDATE"
         const val ACTION_EVENT_DETECTED = "io.github.ntufar.babyonboard.EVENT_DETECTED"
+        const val ACTION_CRASH_DETECTED = "io.github.ntufar.babyonboard.CRASH_DETECTED"
+        const val EXTRA_CONFIDENCE = "confidence"
+        const val EXTRA_LAT = "lat"
+        const val EXTRA_LNG = "lng"
     }
 }

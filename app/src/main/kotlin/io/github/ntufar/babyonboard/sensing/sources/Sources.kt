@@ -57,12 +57,16 @@ class MotionSource(context: Context) : SensorEventListener {
     private var latestAccel: RawSensorData? = null
     @Volatile
     private var latestGyro: RawSensorData? = null
+    @Volatile
+    private var latestRotation: FloatArray? = null
 
     fun start() {
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
         val gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
+        val rotation = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
         sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
         sensorManager.registerListener(this, gyro, SensorManager.SENSOR_DELAY_GAME)
+        sensorManager.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME)
     }
 
     fun stop() {
@@ -78,7 +82,8 @@ class MotionSource(context: Context) : SensorEventListener {
                     latAccel = event.values[1].toDouble(),
                     longAccel = event.values[0].toDouble(),
                     vertAccel = event.values[2].toDouble(),
-                    yawRate = 0.0, altitude = 0.0
+                    yawRate = 0.0, altitude = 0.0,
+                    rotationVector = latestRotation
                 )
                 emitFused()
             }
@@ -88,9 +93,13 @@ class MotionSource(context: Context) : SensorEventListener {
                     lat = 0.0, lng = 0.0, speed = 0.0,
                     latAccel = 0.0, longAccel = 0.0,
                     vertAccel = 0.0,
-                    yawRate = event.values[2].toDouble(), altitude = 0.0
+                    yawRate = event.values[2].toDouble(), altitude = 0.0,
+                    rotationVector = latestRotation
                 )
                 emitFused()
+            }
+            Sensor.TYPE_ROTATION_VECTOR -> {
+                latestRotation = event.values.clone()
             }
         }
     }
@@ -98,7 +107,7 @@ class MotionSource(context: Context) : SensorEventListener {
     private fun emitFused() {
         val accel = latestAccel ?: return
         val gyro = latestGyro ?: return
-        _sensorFlow.tryEmit(accel.copy(yawRate = gyro.yawRate))
+        _sensorFlow.tryEmit(accel.copy(yawRate = gyro.yawRate, rotationVector = latestRotation))
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}

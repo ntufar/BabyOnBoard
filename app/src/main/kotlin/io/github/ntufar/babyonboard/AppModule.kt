@@ -13,6 +13,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import net.sqlcipher.database.SupportFactory
 import javax.inject.Singleton
 
 @Module
@@ -22,11 +23,13 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        val passphrase: ByteArray = "baby_on_board_db_key".toByteArray(Charsets.UTF_8)
+        val factory = SupportFactory(passphrase)
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "babyonboard.db"
-        ).build()
+        ).openHelperFactory(factory).build()
     }
 
     @Provides fun provideTripDao(db: AppDatabase): TripDao = db.tripDao()

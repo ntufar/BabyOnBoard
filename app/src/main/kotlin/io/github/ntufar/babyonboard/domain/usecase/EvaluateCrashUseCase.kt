@@ -2,20 +2,23 @@ package io.github.ntufar.babyonboard.domain.usecase
 
 class EvaluateCrashUseCase {
     fun execute(speedHistory: List<Double>, accelHistory: List<Double>): CrashAssessment {
-        val vPre = speedHistory.lastOrNull() ?: 0.0
+        if (speedHistory.size < 3 || accelHistory.isEmpty()) {
+            return CrashAssessment(isCrashDetected = false, confidence = 0.0f)
+        }
+
+        val maxSpeedBefore = speedHistory.dropLast(1).maxOrNull() ?: 0.0
+        val vNow = speedHistory.last()
         val peakAccel = accelHistory.maxOrNull() ?: 0.0
 
-        val speedCollapsed = speedHistory.takeLast(10).all { it < 5.0 }
+        val wasMovingFast = maxSpeedBefore >= 25.0
+        val hardImpact = peakAccel >= 4.0
+        val speedCollapsed = vNow < 5.0
 
-        val metPrecondition = vPre >= 25.0
-        val metImpact = peakAccel >= 4.0
-        val metPost = speedCollapsed
-
-        val confidence = if (metPrecondition && metImpact && metPost) 1.0f else 0.0f
+        val detected = wasMovingFast && hardImpact && speedCollapsed
 
         return CrashAssessment(
-            isCrashDetected = metPrecondition && metImpact && metPost,
-            confidence = confidence
+            isCrashDetected = detected,
+            confidence = if (detected) 1.0f else 0.0f
         )
     }
 }

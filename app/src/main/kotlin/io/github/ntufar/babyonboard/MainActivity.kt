@@ -1,5 +1,9 @@
 package io.github.ntufar.babyonboard
 
+import android.content.BroadcastReceiver
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import io.github.ntufar.babyonboard.domain.model.Trip
+import io.github.ntufar.babyonboard.sensing.TripForegroundService
 import io.github.ntufar.babyonboard.ui.screens.*
 import io.github.ntufar.babyonboard.ui.theme.BabyOnBoardTheme
 import io.github.ntufar.babyonboard.ui.viewmodel.SettingsViewModel
@@ -29,8 +34,41 @@ class MainActivity : ComponentActivity() {
                     val settingsViewModel: SettingsViewModel = hiltViewModel()
 
                     var babyMode by remember { mutableStateOf(true) }
+                    var emergencyNumber by remember { mutableStateOf("112") }
+
+                    val sosReceiver = remember {
+                        object : BroadcastReceiver() {
+                            override fun onReceive(context: Context, intent: Intent) {
+                                if (intent.action == TripForegroundService.ACTION_CRASH_DETECTED) {
+                                    navController.navigate("sos") {
+                                        popUpTo(0) { inclusive = false }
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    DisposableEffect(Unit) {
+                        val filter = IntentFilter(TripForegroundService.ACTION_CRASH_DETECTED)
+                        registerReceiver(sosReceiver, filter, Context.RECEIVER_EXPORTED)
+                        onDispose { unregisterReceiver(sosReceiver) }
+                    }
+
+                    LaunchedEffect(Unit) {
+                        settingsViewModel.settings.collect { s ->
+                            s?.let { emergencyNumber = it.emergencyNumber }
+                        }
+                    }
 
                     NavHost(navController = navController, startDestination = "onboarding") {
+                        composable("sos") {
+                            SosScreen(
+                                emergencyNumber = emergencyNumber,
+                                onCancel = { navController.popBackStack() },
+                                onCountdownFinished = { navController.popBackStack() }
+                            )
+                        }
+
                         composable("onboarding") {
                             OnboardingScreen(
                                 onComplete = { mode ->

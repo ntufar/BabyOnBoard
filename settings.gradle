@@ -10,6 +10,7 @@ dependencyResolutionManagement {
     repositories {
         google()
         mavenCentral()
+        maven { url 'https://repo.zetetic.net/content/repositories/releases' }
     }
 }
 rootProject.name = "BabyOnBoard"
