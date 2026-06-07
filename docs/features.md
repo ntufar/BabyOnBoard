@@ -72,7 +72,7 @@ Legend: [x] Done | [-] Partial | [ ] Not started
 - [-] NFR-6 Performance — No UI jank; crash latency TBD
 - [ ] NFR-7 Accessibility — Deferred
 - [ ] NFR-8 Localization — EN only; EL deferred
-- [-] NFR-9 Security (encrypted DB) — SQLCipher configured in `AppModule`; hardcoded passphrase, no Keystore
+- [x] NFR-9 Security (encrypted DB) — SQLCipher with AndroidKeystore-backed AES-256 passphrase in `AppModule`
 - [-] NFR-10 Compliance — Permissions declared; Play Data Safety form pending
 
 ---
@@ -93,7 +93,7 @@ Prioritized by impact vs. effort.
 
 ### Critical Fixes (security + correctness)
 
-- [ ] #1 Replace hardcoded DB passphrase with Android Keystore (`AppModule.kt:26`)
+- [x] #1 Replace hardcoded DB passphrase with Android Keystore (`AppModule.kt:26`)
 - [ ] #2 Wire up DistractionSource — call `onScreenOn()/onScreenOff()` in `TripForegroundService`
 - [ ] #3 Implement data retention cleanup — schedule coroutine to delete trips older than `retentionDays`
 - [ ] #4 Add CALL_PHONE permission + auto-dial in SOS flow; display coordinates on SosScreen
@@ -123,5 +123,5 @@ Prioritized by impact vs. effort.
 
 ### Architecture (debt/quality)
 
-- [ ] #19 Wire up MetricSample writing — entity and DAO exist but nothing inserts samples
+- [x] #19 Wire up MetricSample writing — `TripForegroundService` persists every sensor frame via `TripRepository.saveMetricSample()`
 - [ ] #20 Enable ProGuard/R8 for release (`minifyEnabled false` today)
