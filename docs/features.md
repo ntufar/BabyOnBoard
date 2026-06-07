@@ -125,3 +125,17 @@ Prioritized by impact vs. effort.
 
 - [x] #19 Wire up MetricSample writing — `TripForegroundService` persists every sensor frame via `TripRepository.saveMetricSample()`
 - [ ] #20 Enable ProGuard/R8 for release (`minifyEnabled false` today)
+- [ ] #21 Handle trip resume after process death — trips left open in DB (no `endTs`) if the foreground service is killed; detect and close orphaned trips on next launch
+- [ ] #22 Acquire partial WakeLock in `TripForegroundService` — prevent CPU sleep from dropping sensor callbacks during long trips
+
+### Safety & Reliability
+
+- [ ] #23 "Stop Trip" notification action — let the user end a trip directly from the persistent notification without opening the app
+- [ ] #24 Low-battery warning during trip — notify when battery drops below a configurable threshold (default 15%) so the user knows crash detection may be cut short
+- [ ] #25 GPS-loss handling — when location updates stop mid-trip (tunnel, parking garage), emit a gap marker and resume gracefully rather than silently dropping distance
+
+### Analytics & UI
+
+- [ ] #26 Score breakdown in TripSummaryScreen — show per-event-type deduction breakdown (e.g. "3 hard brakes −30 pts") so feedback is actionable
+- [ ] #27 Route map in TripSummaryScreen — render the GPS track from `MetricSample` coordinates using a lightweight map (Maps Compose or OSM)
+- [ ] #28 Weekly summary notification — Sunday push notification with average score, trip count, and trend vs. previous week
