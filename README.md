@@ -30,6 +30,12 @@ Baby on Board is an Android-native application that uses on-device sensor fusion
 - **Encrypted Storage** — All trip data encrypted at rest via SQLCipher.
 - **Privacy First** — All telemetry computation on-device. No account required. Export and delete data anytime.
 
+## Screenshot
+
+<p align="center">
+  <img src="web/screenshot-1.jpeg" alt="Baby on Board app screenshot" width="300">
+</p>
+
 ## Tech Stack
 
 | Layer | Technology |
