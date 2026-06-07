@@ -13,8 +13,8 @@ android {
         applicationId "io.github.ntufar.babyonboard"
         minSdk 26
         targetSdk 35
-        versionCode 5
-        versionName "0.0.5"
+        versionCode 6
+        versionName "0.0.6"
     }
 
     signingConfigs {
@@ -61,6 +61,7 @@ android {
 }
 
 android.applicationVariants.configureEach { variant ->
+    def isRelease = variant.name.contains("release")
     def mergeTask = tasks.findByName("merge${variant.name.capitalize()}NativeLibs")
     if (mergeTask != null) {
         def alignTask = tasks.register("align${variant.name.capitalize()}NativeLibs") {
@@ -73,8 +74,12 @@ android.applicationVariants.configureEach { variant ->
                             commandLine "patchelf", "--page-size", "16384", so.absolutePath
                         }
                     } catch (Exception ignored) {
-                        logger.warn("patchelf not found; skipping 16 KB alignment for ${so.name}. " +
-                            "Install patchelf (brew install patchelf) to fix.")
+                        def msg = "patchelf not found; skipping 16 KB alignment for ${so.name}. " +
+                            "Install patchelf (brew install patchelf) to fix."
+                        if (isRelease) {
+                            throw new GradleException(msg)
+                        }
+                        logger.warn(msg)
                     }
                 }
             }

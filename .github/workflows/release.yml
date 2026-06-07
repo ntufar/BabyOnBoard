@@ -27,6 +27,9 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Install patchelf for 16 KB page alignment
+        run: sudo apt-get update && sudo apt-get install -y patchelf
+
       - name: Set up signing keys
         run: |
           echo "${{ secrets.SIGNING_KEY }}" | base64 -d > release.keystore

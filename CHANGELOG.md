@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.6] - 2026-06-07
+
+### Fixed
+- **16 KB memory page alignment** — `libsqlcipher.so` now properly aligned for Android 15+ compatibility; `patchelf` installed in CI release workflow and build fails on missing patchelf for release builds
+
+### Changed
+- Release workflow installs `patchelf` before building
+- `alignNativeLibs` task throws on missing patchelf for release variants
+
 ## [0.0.5] - 2026-06-07
 
 ### Added
@@ -9,7 +18,7 @@
 - **Website badge** — added to README badge row, linking to GitHub Pages
 
 ### Changed
-- Updated web page version from v0.0.4 to v0.0.5
+- Updated web page version to v0.0.5
 - Fixed screenshot filename typo (screensot → screenshot)
 - Updated targetSdk badge from 34 to 35 in README
 

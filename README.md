@@ -15,7 +15,7 @@
   <img src="https://img.shields.io/badge/Kotlin-1.9.20-7F52FF?logo=kotlin&logoColor=white" alt="Kotlin 1.9.20">
   <img src="https://img.shields.io/badge/minSdk-26-3DDC84?logo=android&logoColor=white" alt="minSdk 26">
   <img src="https://img.shields.io/badge/targetSdk-35-3DDC84?logo=android&logoColor=white" alt="targetSdk 35">
-  <a href="https://github.com/ntufar/BabyOnBoard/releases"><img src="https://img.shields.io/badge/release-0.0.5-blue" alt="v0.0.5"></a>
+  <a href="https://github.com/ntufar/BabyOnBoard/releases"><img src="https://img.shields.io/badge/release-0.0.6-blue" alt="v0.0.6"></a>
 </p>
 
 Baby on Board is an Android-native application that uses on-device sensor fusion (GNSS, accelerometer, gyroscope) to provide parents and caregivers with clear, non-judgmental telemetry on driving smoothness and safety. All processing stays on-device — no raw sensor data is transmitted.
