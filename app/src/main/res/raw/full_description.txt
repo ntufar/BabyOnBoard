@@ -1,0 +1,56 @@
+Baby on Board gives parents and caregivers calm, honest feedback about driving smoothness using nothing but the sensors already in your phone. No account. No cloud. No judgment.
+
+Designed for families, Baby on Board turns your Android phone into a privacy-first driving telemetry companion. Every harsh brake, sharp turn, or rough stretch of road is detected on-device and translated into a simple 0-100 Safe-Driving Score you can review after every trip.
+
+On-Device Sensor Fusion
+
+Baby on Board combines GNSS (GPS), accelerometer, gyroscope, and rotation vector data to detect hard braking, hard acceleration, hard cornering, jerk, and speed smoothness in real time. All computation stays on your phone. No raw sensor data ever leaves the device.
+
+Baby Mode
+
+Tap Baby Mode before you start driving and the app applies gentler safety thresholds tuned for infant comfort. With reduced jerk limits and stricter braking and acceleration boundaries, Baby Mode gives you an extra nudge to keep things smooth for your little one. It is always manual, never automatic. You are in control.
+
+Safe-Driving Score
+
+After every trip, you will see a 0-100 score normalized by distance. It is based on harsh-event rate per 100 km, overall jerk, and speed smoothness. No shaming, no leaderboards. Just clear, non-punitive feedback to help you improve over time.
+
+Trip History
+
+Browse past trips with score badges, distance, duration, average speed, and a detailed event log showing each harsh event with severity indicators.
+
+Crash Detection and SOS
+
+If the app detects a potential crash, a 60-second countdown begins on your screen. You can cancel it at any time. If you do not, the app sends your location to your emergency contacts and prompts you to dial emergency services. This is a supplementary feature. It uses phone sensors, not a certified eCall system.
+
+Back-Seat Reminder
+
+When Baby Mode was active, you will get a Check the back seat notification at the end of each trip. A simple backstop reminder, not a guarantee.
+
+Privacy First - No Compromises
+
+100% on-device processing with no raw sensor data transmitted.
+All trip data encrypted at rest via SQLCipher.
+No account or sign-up required.
+Location used only for speed measurement, never shared.
+Export or delete your data at any time.
+GDPR compliant.
+
+Important Limitations
+
+Baby on Board does not detect, sense, or confirm the presence of a child in the vehicle. Baby Mode is manually activated by the user and cannot determine if a child is actually on board. The back-seat reminder is a supplementary memory aid, not a child-presence detection system. The crash detection and SOS feature is a supplementary tool and should not be relied upon as a primary safety system. Always supervise your children and drive safely.
+
+Permissions Required
+
+Location (foreground): Used to measure GPS speed during active trips.
+Activity Recognition: Used to detect driving state transitions.
+Notifications: Used for the back-seat reminder, SOS countdown, and foreground service.
+
+Compatible With
+
+Android 8.0 (API 26) and above.
+
+Built With Care
+
+Baby on Board is open source (MIT), built with Kotlin and Jetpack Compose. It uses Clean Architecture, MVVM, Hilt, Room (SQLCipher), and Kotlin Coroutines and Flow. Developed by N. Tufar.
+
+Safe-Driving Telemetry for Families
