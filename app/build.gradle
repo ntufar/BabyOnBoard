@@ -124,7 +124,7 @@ dependencies {
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
     // SQLCipher for Room encryption
-    implementation "net.zetetic:android-database-sqlcipher:4.6.1"
+    implementation "net.zetetic:android-database-sqlcipher:4.5.4"
     implementation "androidx.sqlite:sqlite-ktx:2.4.0"
     
     // Hilt

@@ -3,7 +3,7 @@
 ## [0.0.10] - 2026-06-08
 
 ### Fixed
-- **16 KB memory page support** — updated SQLCipher from 4.5.0 to 4.6.1 and Play Services Location from 21.1.0 to 21.3.0, both of which now ship 16 KB-aligned `.so` files; fixed Gradle alignment task to run inside `afterEvaluate` so AGP tasks are registered before lookup (the original `configureEach` approach silently skipped patchelf on every build)
+- **16 KB memory page support** — updated SQLCipher from 4.5.0 to 4.5.4 and Play Services Location from 21.1.0 to 21.3.0; fixed Gradle alignment task to run inside `afterEvaluate` so AGP tasks are registered before lookup (the original `configureEach` approach silently skipped patchelf on every build)
 
 ## [0.0.9] - 2026-06-08
 
