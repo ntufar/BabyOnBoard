@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.12] - 2026-06-08
+
+### Fixed
+- **16 KB page size compatibility** — upgraded SQLCipher from `net.zetetic:android-database-sqlcipher:4.5.4` to `net.zetetic:sqlcipher-android:4.9.0`; the new artifact ships binaries compiled with `p_align=0x4000` (16 KB), eliminating the "LOAD segment not aligned" warning on Android 15+ devices; removed the now-unnecessary `patchelf` post-processing step from both the Gradle build and CI release workflow
+
 ## [0.0.11] - 2026-06-08
 
 ### Fixed

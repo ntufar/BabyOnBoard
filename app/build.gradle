@@ -13,8 +13,8 @@ android {
         applicationId "io.github.ntufar.babyonboard"
         minSdk 26
         targetSdk 35
-        versionCode 11
-        versionName "0.0.11"
+        versionCode 12
+        versionName "0.0.12"
     }
 
     signingConfigs {
@@ -60,40 +60,6 @@ android {
     }
 }
 
-afterEvaluate {
-    android.applicationVariants.each { variant ->
-        def isRelease = variant.name.contains("release")
-        def variantCapitalized = variant.name.capitalize()
-        def stripTaskName = "strip${variantCapitalized}DebugSymbols"
-        def stripTask = tasks.findByName(stripTaskName)
-        if (stripTask == null) return
-
-        def alignTask = tasks.register("align${variantCapitalized}NativeLibs") {
-            dependsOn stripTaskName
-            doLast {
-                def stripped = tasks.named(stripTaskName).get()
-                stripped.outputs.files.each { f ->
-                    (f.isDirectory() ? fileTree(f) : files(f))
-                        .matching { include "**/*.so" }
-                        .each { so ->
-                            try {
-                                exec { commandLine "patchelf", "--page-size", "16384", so.absolutePath }
-                            } catch (Exception e) {
-                                def msg = "patchelf not found; skipping 16 KB alignment for ${so.name}. " +
-                                    "Install patchelf (brew install patchelf) to fix."
-                                if (isRelease) throw new GradleException(msg)
-                                logger.warn(msg)
-                            }
-                        }
-                }
-            }
-        }
-
-        tasks.matching { it.name.startsWith("package${variantCapitalized}") }.configureEach {
-            dependsOn alignTask
-        }
-    }
-}
 
 dependencies {
     implementation "androidx.core:core-ktx:1.12.0"
@@ -124,7 +90,7 @@ dependencies {
     implementation "androidx.datastore:datastore-preferences:1.0.0"
 
     // SQLCipher for Room encryption
-    implementation "net.zetetic:android-database-sqlcipher:4.5.4"
+    implementation "net.zetetic:sqlcipher-android:4.9.0"
     implementation "androidx.sqlite:sqlite-ktx:2.4.0"
     
     // Hilt

@@ -14,7 +14,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import net.sqlcipher.database.SupportFactory
+import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.util.Base64
@@ -38,7 +38,7 @@ object AppModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         val passphrase = getDatabasePassphrase(context)
-        val factory = SupportFactory(passphrase, null, false)
+        val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
