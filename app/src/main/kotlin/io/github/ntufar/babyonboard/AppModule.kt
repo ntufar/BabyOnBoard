@@ -38,8 +38,7 @@ object AppModule {
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         val passphrase = getDatabasePassphrase(context)
-        val factory = SupportFactory(passphrase)
-        passphrase.fill(0)
+        val factory = SupportFactory(passphrase, null, false)
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
