@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.0.16] - 2026-06-09
+
+### Added
+- **Distraction tracking receiver**: Registered a dynamic `BroadcastReceiver` in `TripForegroundService` that listens for screen on/off events (`ACTION_SCREEN_ON`/`ACTION_SCREEN_OFF`) and forwards them to `DistractionSource` to accurately track phone use events.
+- **Service Unit Tests**: Added `TripForegroundServiceTest` containing comprehensive unit tests for screen receiver registration, unregistration, and event handling.
+
+### Fixed
+- **TripSummaryScreen unit conversion**: Updated the post-trip summary to display distance in kilometers (`km`) instead of meters (`m`) when using metric units, and formatted both metric and imperial (miles) distance values to a consistent 2 decimal places.
+- **MainActivity settings propagation**: Pass the active unit setting (`units`) to `TripSummaryScreen` so display units are dynamically collected and rendered correctly.
+
+## [0.0.15] - 2026-06-09
+
+### Fixed
+- **SQLiteNotADatabaseException for passphrase mismatch**: Force Room to open the database immediately and catch SQLiteNotADatabaseException to delete database files and rebuild when the key is out of sync or file is corrupt.
+
+## [0.0.14] - 2026-06-08
+
+### Fixed
+- **Pre-encryption database cleanup**: Detect plain SQLite database files (from before SQLCipher was introduced) and delete them before opening, ensuring Room creates a fresh encrypted database instead of failing.
+
+## [0.0.13] - 2026-06-08
+
+### Fixed
+- **SQLCipher native library registration**: Replaced missing loadLibs() with System.loadLibrary("sqlcipher") to ensure the native library is registered before database first open.
+
 ## [0.0.12] - 2026-06-08
 
 ### Fixed

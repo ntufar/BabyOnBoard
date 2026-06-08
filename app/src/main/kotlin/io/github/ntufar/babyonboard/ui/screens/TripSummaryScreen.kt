@@ -25,10 +25,10 @@ fun TripSummaryScreen(
     onBackToHistory: () -> Unit
 ) {
     val speedUnit = if (units == "mi") "mph" else "km/h"
-    val distUnit = if (units == "mi") "mi" else "m"
+    val distUnit = if (units == "mi") "mi" else "km"
     val displaySpeed = if (units == "mi") trip.avgSpeed * 0.621371 else trip.avgSpeed
-    val displayDist = if (units == "mi") trip.distanceM * 0.000621371 else trip.distanceM.toDouble()
-    val distFormat = if (units == "mi") "%.2f".format(displayDist) else "${trip.distanceM.toInt()}"
+    val displayDist = if (units == "mi") trip.distanceM * 0.000621371 else trip.distanceM / 1000.0
+    val distFormat = "%.2f".format(displayDist)
 
     val harshEvents = events.count { it.severity > 0.5f }
     val breakdown = computeScoreBreakdown(events, trip.score)

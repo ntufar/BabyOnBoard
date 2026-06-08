@@ -4,7 +4,10 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.hardware.SensorManager
 import android.os.Build
 import android.os.IBinder
@@ -39,6 +42,15 @@ class TripForegroundService : Service() {
     private val crashUseCase = EvaluateCrashUseCase()
     private var crashAlerted = false
 
+    private val screenReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Intent.ACTION_SCREEN_ON -> distractionSource.onScreenOn()
+                Intent.ACTION_SCREEN_OFF -> distractionSource.onScreenOff()
+            }
+        }
+    }
+
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onCreate() {
@@ -46,6 +58,12 @@ class TripForegroundService : Service() {
         locationSource = LocationSource(this)
         motionSource = MotionSource(this)
         distractionSource = DistractionSource(this)
+
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        registerReceiver(screenReceiver, filter)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -159,6 +177,11 @@ class TripForegroundService : Service() {
         locationSource.stop()
         motionSource.stop()
         distractionSource.stop()
+        try {
+            unregisterReceiver(screenReceiver)
+        } catch (_: IllegalArgumentException) {
+            // Ignore if not registered
+        }
         serviceScope.cancel()
         super.onDestroy()
     }

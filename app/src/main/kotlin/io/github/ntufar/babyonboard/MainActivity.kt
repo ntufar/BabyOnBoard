@@ -32,6 +32,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val tripViewModel: TripViewModel = hiltViewModel()
                     val settingsViewModel: SettingsViewModel = hiltViewModel()
+                    val settingsState by settingsViewModel.settings.collectAsState()
 
                     var babyMode by remember { mutableStateOf(true) }
                     var emergencyNumber by remember { mutableStateOf("112") }
@@ -125,6 +126,7 @@ class MainActivity : ComponentActivity() {
                                 TripSummaryScreen(
                                     trip = trip,
                                     events = events,
+                                    units = settingsState?.units ?: "km",
                                     onBackToHistory = {
                                         navController.navigate("trip_history") {
                                             popUpTo(0) { inclusive = true }

@@ -94,10 +94,10 @@ Prioritized by impact vs. effort.
 ### Critical Fixes (security + correctness)
 
 - [x] #1 Replace hardcoded DB passphrase with Android Keystore (`AppModule.kt:26`)
-- [ ] #2 Wire up DistractionSource — call `onScreenOn()/onScreenOff()` in `TripForegroundService`
+- [x] #2 Wire up DistractionSource — call `onScreenOn()/onScreenOff()` in `TripForegroundService`
 - [ ] #3 Implement data retention cleanup — schedule coroutine to delete trips older than `retentionDays`
 - [ ] #4 Add CALL_PHONE permission + auto-dial in SOS flow; display coordinates on SosScreen
-- [ ] #5 TripSummaryScreen: fix unit conversion (show km not m for metric, consistent decimal places)
+- [x] #5 TripSummaryScreen: fix unit conversion (show km not m for metric, consistent decimal places)
 
 ### Medium Impact / Moderate Effort
 
