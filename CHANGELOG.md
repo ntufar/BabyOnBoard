@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.11] - 2026-06-08
+
+### Fixed
+- **SQLCipher dependency** — downgraded from 4.6.1 to 4.5.4, the latest version available on Maven Central; 4.6.1 is only published to repo.zetetic.net which is unreachable from CI
+
 ## [0.0.10] - 2026-06-08
 
 ### Fixed
