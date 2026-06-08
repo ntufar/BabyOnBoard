@@ -37,6 +37,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
+        System.loadLibrary("sqlcipher")
         val passphrase = getDatabasePassphrase(context)
         val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(
