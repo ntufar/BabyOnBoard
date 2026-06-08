@@ -40,7 +40,7 @@ object AppModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         System.loadLibrary("sqlcipher")
         val passphrase = getDatabasePassphrase(context)
-        deleteUnencryptedDatabaseIfExists(context)
+        deleteInvalidDatabaseIfExists(context, passphrase)
         val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(
             context,
@@ -49,9 +49,11 @@ object AppModule {
         ).openHelperFactory(factory).build()
     }
 
-    private fun deleteUnencryptedDatabaseIfExists(context: Context) {
+    private fun deleteInvalidDatabaseIfExists(context: Context, passphrase: ByteArray) {
         val dbFile = context.getDatabasePath("babyonboard.db")
-        if (dbFile.exists() && isPlainSqliteFile(dbFile)) {
+        if (!dbFile.exists()) return
+        val invalid = isPlainSqliteFile(dbFile) || !canOpenWithSQLCipher(dbFile, passphrase)
+        if (invalid) {
             dbFile.delete()
             File("${dbFile.path}-wal").delete()
             File("${dbFile.path}-shm").delete()
@@ -64,6 +66,19 @@ object AppModule {
             file.inputStream().use { it.read(magic) == 16 } &&
                 magic.toString(Charsets.UTF_8).startsWith("SQLite format 3")
         } catch (_: Exception) { false }
+    }
+
+    private fun canOpenWithSQLCipher(file: File, passphrase: ByteArray): Boolean {
+        return try {
+            val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase(
+                file.absolutePath, passphrase, null,
+                net.zetetic.database.sqlcipher.SQLiteDatabase.OPEN_READONLY
+            )
+            db.close()
+            true
+        } catch (_: Exception) {
+            false
+        }
     }
 
     private fun getDatabasePassphrase(context: Context): ByteArray {
