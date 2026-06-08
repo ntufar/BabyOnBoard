@@ -40,24 +40,40 @@ object AppModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         System.loadLibrary("sqlcipher")
         val passphrase = getDatabasePassphrase(context)
-        deleteInvalidDatabaseIfExists(context, passphrase)
+        deleteUnencryptedDatabaseIfExists(context)
         val factory = SupportOpenHelperFactory(passphrase)
-        return Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "babyonboard.db"
-        ).openHelperFactory(factory).build()
+        val db = buildDatabase(context, factory)
+        return try {
+            db.openHelper.writableDatabase
+            db
+        } catch (e: Exception) {
+            // Covers corrupt files or passphrase mismatch (e.g. backup/restore out of sync)
+            val isNotADatabase = generateSequence(e as Throwable) { it.cause }
+                .any { it is net.zetetic.database.sqlcipher.SQLiteNotADatabaseException }
+            if (!isNotADatabase) throw e
+            db.close()
+            deleteDatabaseFiles(context)
+            buildDatabase(context, factory)
+        }
     }
 
-    private fun deleteInvalidDatabaseIfExists(context: Context, passphrase: ByteArray) {
+    private fun buildDatabase(context: Context, factory: SupportOpenHelperFactory) =
+        Room.databaseBuilder(context, AppDatabase::class.java, "babyonboard.db")
+            .openHelperFactory(factory)
+            .build()
+
+    private fun deleteUnencryptedDatabaseIfExists(context: Context) {
         val dbFile = context.getDatabasePath("babyonboard.db")
-        if (!dbFile.exists()) return
-        val invalid = isPlainSqliteFile(dbFile) || !canOpenWithSQLCipher(dbFile, passphrase)
-        if (invalid) {
-            dbFile.delete()
-            File("${dbFile.path}-wal").delete()
-            File("${dbFile.path}-shm").delete()
+        if (dbFile.exists() && isPlainSqliteFile(dbFile)) {
+            deleteDatabaseFiles(context)
         }
+    }
+
+    private fun deleteDatabaseFiles(context: Context) {
+        val dbFile = context.getDatabasePath("babyonboard.db")
+        dbFile.delete()
+        File("${dbFile.path}-wal").delete()
+        File("${dbFile.path}-shm").delete()
     }
 
     private fun isPlainSqliteFile(file: File): Boolean {
@@ -66,19 +82,6 @@ object AppModule {
             file.inputStream().use { it.read(magic) == 16 } &&
                 magic.toString(Charsets.UTF_8).startsWith("SQLite format 3")
         } catch (_: Exception) { false }
-    }
-
-    private fun canOpenWithSQLCipher(file: File, passphrase: ByteArray): Boolean {
-        return try {
-            val db = net.zetetic.database.sqlcipher.SQLiteDatabase.openDatabase(
-                file.absolutePath, passphrase, null,
-                net.zetetic.database.sqlcipher.SQLiteDatabase.OPEN_READONLY
-            )
-            db.close()
-            true
-        } catch (_: Exception) {
-            false
-        }
     }
 
     private fun getDatabasePassphrase(context: Context): ByteArray {
