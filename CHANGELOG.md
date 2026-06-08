@@ -1,9 +1,10 @@
 # Changelog
 
-## [0.0.9] - 2026-06-07
+## [0.0.9] - 2026-06-08
 
 ### Added
 - **Score breakdown card** — `TripSummaryScreen` now shows a per-event-type deduction breakdown (e.g. "3× hard brake −30 pts") so drivers can see exactly what cost them points; computed by `computeScoreBreakdown()` as a proportional split of total deduction across harsh event types; 8 unit tests added in `TripSummaryScreenTest`
+- **Prominent location disclosure** — `OnboardingScreen` now shows a "Data We Collect & Why" card before the permission dialog explaining what GPS/sensor data is collected, that it stays on-device, and is never shared; user must tick an acknowledgement checkbox before the "Grant Permissions" button activates; addresses Google Play Prominent Disclosure and Consent Requirement
 
 ## [0.0.8] - 2026-06-07
 

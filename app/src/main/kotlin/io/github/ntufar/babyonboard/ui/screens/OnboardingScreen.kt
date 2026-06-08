@@ -23,6 +23,7 @@ fun OnboardingScreen(
 ) {
     var babyMode by remember { mutableStateOf(true) }
     var permissionsGranted by remember { mutableStateOf(false) }
+    var disclosureAccepted by remember { mutableStateOf(false) }
     val context = LocalContext.current
 
     val requiredPermissions = remember {
@@ -45,6 +46,7 @@ fun OnboardingScreen(
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
         }
         permissionsGranted = allGranted
+        if (allGranted) disclosureAccepted = true
     }
 
     Column(
@@ -123,6 +125,45 @@ fun OnboardingScreen(
             }
         }
 
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Data We Collect & Why",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "BabyOnBoard collects your precise GPS location and motion sensor data " +
+                            "while a trip is active. This data is used exclusively on your device to " +
+                            "calculate driving scores, detect harsh events (braking, acceleration, " +
+                            "cornering), and trigger the hot-car reminder. " +
+                            "Location data is never uploaded to external servers or shared with third parties.",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Checkbox(
+                        checked = disclosureAccepted,
+                        onCheckedChange = { disclosureAccepted = it }
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "I understand how my location data will be used",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+        }
+
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Row(
@@ -145,7 +186,7 @@ fun OnboardingScreen(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Location, sensors, and notifications",
+                    text = "Location (GPS), motion sensors, and notifications",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -162,6 +203,7 @@ fun OnboardingScreen(
                     onComplete(babyMode)
                 }
             },
+            enabled = disclosureAccepted,
             modifier = Modifier
                 .fillMaxWidth()
                 .height(56.dp)
