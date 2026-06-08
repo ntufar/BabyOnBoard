@@ -15,6 +15,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import net.zetetic.database.sqlcipher.SupportOpenHelperFactory
+import java.io.File
 import java.security.KeyStore
 import java.security.SecureRandom
 import java.util.Base64
@@ -39,12 +40,30 @@ object AppModule {
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
         System.loadLibrary("sqlcipher")
         val passphrase = getDatabasePassphrase(context)
+        deleteUnencryptedDatabaseIfExists(context)
         val factory = SupportOpenHelperFactory(passphrase)
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
             "babyonboard.db"
         ).openHelperFactory(factory).build()
+    }
+
+    private fun deleteUnencryptedDatabaseIfExists(context: Context) {
+        val dbFile = context.getDatabasePath("babyonboard.db")
+        if (dbFile.exists() && isPlainSqliteFile(dbFile)) {
+            dbFile.delete()
+            File("${dbFile.path}-wal").delete()
+            File("${dbFile.path}-shm").delete()
+        }
+    }
+
+    private fun isPlainSqliteFile(file: File): Boolean {
+        val magic = ByteArray(16)
+        return try {
+            file.inputStream().use { it.read(magic) == 16 } &&
+                magic.toString(Charsets.UTF_8).startsWith("SQLite format 3")
+        } catch (_: Exception) { false }
     }
 
     private fun getDatabasePassphrase(context: Context): ByteArray {
