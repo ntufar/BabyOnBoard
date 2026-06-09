@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat
 import dagger.hilt.android.AndroidEntryPoint
 import io.github.ntufar.babyonboard.MainActivity
 import io.github.ntufar.babyonboard.domain.model.MetricSample
+import io.github.ntufar.babyonboard.domain.model.SensitivityMode
 import io.github.ntufar.babyonboard.domain.repository.TripRepository
 import io.github.ntufar.babyonboard.domain.usecase.EvaluateCrashUseCase
 import io.github.ntufar.babyonboard.sensing.engine.TelemetryEngine
@@ -69,10 +70,13 @@ class TripForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val babyMode = intent?.getBooleanExtra(EXTRA_BABY_MODE, true) ?: true
+        val sensitivityName = intent?.getStringExtra(EXTRA_SENSITIVITY) ?: SensitivityMode.CAR.name
+        val sensitivity = runCatching { SensitivityMode.valueOf(sensitivityName) }
+            .getOrDefault(SensitivityMode.CAR)
         tripId = intent?.getStringExtra(EXTRA_TRIP_ID) ?: "unknown"
         crashAlerted = false
 
-        telemetryEngine = TelemetryEngine(babyMode = babyMode)
+        telemetryEngine = TelemetryEngine(babyMode = babyMode, sensitivity = sensitivity)
         telemetryEngine.resetWindows()
         latestLocation = null
         locationSource.start()
@@ -253,6 +257,7 @@ class TripForegroundService : Service() {
         const val NOTIFICATION_ID = 1
         const val EXTRA_TRIP_ID = "trip_id"
         const val EXTRA_BABY_MODE = "baby_mode"
+        const val EXTRA_SENSITIVITY = "sensitivity"
         const val EXTRA_SPEED = "speed"
         const val EXTRA_EVENT_TYPE = "event_type"
         const val EXTRA_EVENT_VALUE = "event_value"

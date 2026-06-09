@@ -16,6 +16,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import io.github.ntufar.babyonboard.domain.model.ContactRole
+import io.github.ntufar.babyonboard.domain.model.SensitivityMode
 import io.github.ntufar.babyonboard.ui.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -33,6 +34,7 @@ fun SettingsScreen(
     var units by remember(settings) { mutableStateOf(settings?.units ?: "km") }
     var retentionDays by remember(settings) { mutableStateOf(settings?.retentionDays ?: 30) }
     var reminderEscalation by remember(settings) { mutableStateOf(settings?.reminderEscalation ?: 1) }
+    var sensitivity by remember(settings) { mutableStateOf(settings?.sensitivity ?: SensitivityMode.CAR) }
     var savedMessage by remember { mutableStateOf<String?>(null) }
 
     var showAddContactDialog by remember { mutableStateOf(false) }
@@ -47,6 +49,12 @@ fun SettingsScreen(
     val unitOptions = listOf("km", "mi")
     val retentionOptions = listOf(7, 14, 30, 60, 90)
     val escalationOptions = listOf(1 to "Once", 2 to "Two alerts", 3 to "Three alerts")
+    val sensitivityOptions = listOf(
+        SensitivityMode.CAR     to "Car (≥18 km/h)",
+        SensitivityMode.BUS     to "Bus (≥7 km/h)",
+        SensitivityMode.TRAIN   to "Train (≥2 km/h)",
+        SensitivityMode.WALKING to "Walking (any speed)"
+    )
 
     LaunchedEffect(settings) {
         settings?.let {
@@ -56,6 +64,7 @@ fun SettingsScreen(
             units = it.units
             retentionDays = it.retentionDays
             reminderEscalation = it.reminderEscalation
+            sensitivity = it.sensitivity
         }
     }
 
@@ -105,6 +114,18 @@ fun SettingsScreen(
                     options = unitOptions,
                     selected = units,
                     onSelected = { units = it }
+                )
+            }
+
+            item {
+                SettingsSelectorCard(
+                    title = "Sensitivity",
+                    description = "Transport mode — sets minimum speed and event thresholds",
+                    options = sensitivityOptions.map { it.second },
+                    selected = sensitivityOptions.first { it.first == sensitivity }.second,
+                    onSelected = { label ->
+                        sensitivity = sensitivityOptions.first { it.second == label }.first
+                    }
                 )
             }
 
@@ -224,7 +245,8 @@ fun SettingsScreen(
                                 emergencyNumber = emergencyNumber,
                                 units = units,
                                 retentionDays = retentionDays,
-                                reminderEscalation = reminderEscalation
+                                reminderEscalation = reminderEscalation,
+                                sensitivity = sensitivity
                             ) ?: return@Button
                         )
                         savedMessage = "Settings saved"

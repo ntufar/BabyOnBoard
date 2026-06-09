@@ -60,6 +60,7 @@ object AppModule {
     private fun buildDatabase(context: Context, factory: SupportOpenHelperFactory) =
         Room.databaseBuilder(context, AppDatabase::class.java, "babyonboard.db")
             .openHelperFactory(factory)
+            .addMigrations(AppDatabase.MIGRATION_1_2)
             .build()
 
     private fun deleteUnencryptedDatabaseIfExists(context: Context) {

@@ -121,6 +121,7 @@ class TripViewModel @Inject constructor(
 
     fun startTrip(babyMode: Boolean) {
         viewModelScope.launch {
+            val sensitivity = repository.getSettings().sensitivity
             val trip = StartTripUseCase(repository).execute(babyMode)
             _currentTrip.value = trip
             _events.value = emptyList()
@@ -130,7 +131,7 @@ class TripViewModel @Inject constructor(
             _accelHistory.value = emptyList()
             if (startTimerOnTripStart) startTimer()
             registerSensorReceiver()
-            startForegroundService(trip.id, babyMode)
+            startForegroundService(trip.id, babyMode, sensitivity.name)
         }
     }
 
@@ -237,11 +238,12 @@ class TripViewModel @Inject constructor(
         return (100 - eventsPer100km * 10).coerceIn(0, 100)
     }
 
-    private fun startForegroundService(tripId: String, babyMode: Boolean) {
+    private fun startForegroundService(tripId: String, babyMode: Boolean, sensitivity: String) {
         try {
             val intent = Intent(context, TripForegroundService::class.java).apply {
                 putExtra(TripForegroundService.EXTRA_TRIP_ID, tripId)
                 putExtra(TripForegroundService.EXTRA_BABY_MODE, babyMode)
+                putExtra(TripForegroundService.EXTRA_SENSITIVITY, sensitivity)
             }
             context.startForegroundService(intent)
         } catch (_: RuntimeException) {

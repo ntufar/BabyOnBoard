@@ -7,6 +7,7 @@ import io.github.ntufar.babyonboard.data.db.SettingsDao
 import io.github.ntufar.babyonboard.data.db.TripDao
 import io.github.ntufar.babyonboard.data.model.*
 import io.github.ntufar.babyonboard.domain.model.*
+import io.github.ntufar.babyonboard.domain.model.SensitivityMode
 import io.github.ntufar.babyonboard.domain.repository.TripRepository
 import java.util.UUID
 
@@ -67,7 +68,7 @@ class TripRepositoryImpl(
         settingsDao.insertSettings(SettingsEntity(
             "default_settings", settings.autoStart, settings.btTriggerDeviceId,
             settings.dndInTrip, settings.reminderEscalation, settings.retentionDays,
-            settings.units, settings.emergencyNumber
+            settings.units, settings.emergencyNumber, settings.sensitivity.name
         ))
     }
 
@@ -75,9 +76,15 @@ class TripRepositoryImpl(
         val entity = settingsDao.getSettings()
         return entity?.let { s ->
             Settings(
-                s.autoStart, s.btTriggerDeviceId, s.dndInTrip,
-                s.reminderEscalation, s.retentionDays, s.units,
-                s.emergencyNumber
+                autoStart = s.autoStart,
+                btTriggerDeviceId = s.btTriggerDeviceId,
+                dndInTrip = s.dndInTrip,
+                reminderEscalation = s.reminderEscalation,
+                retentionDays = s.retentionDays,
+                units = s.units,
+                emergencyNumber = s.emergencyNumber,
+                sensitivity = runCatching { SensitivityMode.valueOf(s.sensitivity) }
+                    .getOrDefault(SensitivityMode.CAR)
             )
         } ?: Settings(
             autoStart = false,
@@ -86,7 +93,8 @@ class TripRepositoryImpl(
             reminderEscalation = 1,
             retentionDays = 30,
             units = "km",
-            emergencyNumber = "112"
+            emergencyNumber = "112",
+            sensitivity = SensitivityMode.CAR
         )
     }
 

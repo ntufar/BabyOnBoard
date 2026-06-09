@@ -85,5 +85,6 @@ data class SettingsEntity(
     val reminderEscalation: Int,
     val retentionDays: Int,
     val units: String,
-    val emergencyNumber: String
+    val emergencyNumber: String,
+    @androidx.room.ColumnInfo(defaultValue = "CAR") val sensitivity: String = "CAR"
 )

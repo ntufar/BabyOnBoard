@@ -1,6 +1,7 @@
 package io.github.ntufar.babyonboard.sensing.engine
 
 import io.github.ntufar.babyonboard.domain.model.EventType
+import io.github.ntufar.babyonboard.domain.model.SensitivityMode
 import io.github.ntufar.babyonboard.domain.model.TelemetryEvent
 import kotlin.math.abs
 import kotlin.math.atan2
@@ -9,10 +10,14 @@ import kotlin.math.pow
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-class TelemetryEngine(private val babyMode: Boolean) {
-
-    private val longAccelThreshold = if (babyMode) 2.5 else 3.5
-    private val latAccelThreshold = if (babyMode) 3.0 else 4.0
+class TelemetryEngine(
+    private val babyMode: Boolean,
+    private val sensitivity: SensitivityMode = SensitivityMode.CAR
+) {
+    private val babyFactor = if (babyMode) 0.7 else 1.0
+    private val longAccelThreshold = sensitivity.longAccelThreshold * babyFactor
+    private val latAccelThreshold = sensitivity.latAccelThreshold * babyFactor
+    private val minSpeedMs = sensitivity.minSpeedMs
     private val jerkThreshold = 2.0
 
     private var prevAccel: Double? = null
@@ -30,7 +35,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
     private var prevDist: Double? = null
     private var prevGradAlt: Double? = null
 
-    private val roughnessThreshold = if (babyMode) 1.5 else 2.0
+    private val roughnessThreshold = sensitivity.roughnessThreshold * babyFactor
     private val swerveYawThreshold = 0.5
 
     private fun computeVariance(values: List<Double>): Double {
@@ -76,7 +81,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
         val events = mutableListOf<TelemetryEvent>()
         val ts = frame.timestamp
 
-        if (frame.longAccel <= -longAccelThreshold) {
+        if (frame.longAccel <= -longAccelThreshold && frame.speed >= minSpeedMs) {
             events.add(TelemetryEvent(
                 id = "${tripId}_brake_$ts", tripId = tripId, ts = ts,
                 type = EventType.BRAKE, severity = 0.8f,
@@ -85,7 +90,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
             ))
         }
 
-        if (frame.longAccel >= longAccelThreshold) {
+        if (frame.longAccel >= longAccelThreshold && frame.speed >= minSpeedMs) {
             events.add(TelemetryEvent(
                 id = "${tripId}_accel_$ts", tripId = tripId, ts = ts,
                 type = EventType.ACCEL, severity = 0.8f,
@@ -112,7 +117,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
 
         vertAccelWindow.add(frame.vertAccel)
         if (vertAccelWindow.size > maxVertAccelWindowSize) vertAccelWindow.removeAt(0)
-        if (vertAccelWindow.size >= 10) {
+        if (vertAccelWindow.size >= 10 && frame.speed >= minSpeedMs) {
             val variance = computeVariance(vertAccelWindow)
             if (variance > roughnessThreshold) {
                 events.add(TelemetryEvent(
@@ -126,7 +131,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
 
         yawWindow.add(YawSample(ts, frame.yawRate, frame.latAccel))
         if (yawWindow.size > maxYawWindowSize) yawWindow.removeAt(0)
-        if (yawWindow.size >= 5) {
+        if (yawWindow.size >= 5 && frame.speed >= minSpeedMs) {
             val swerveEvent = detectSwerve(tripId, frame)
             if (swerveEvent != null) {
                 events.add(swerveEvent)

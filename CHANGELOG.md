@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.19] - 2026-06-10
+
+### Added
+- **Sensitivity mode setting**: New `SensitivityMode` enum (Car / Bus / Train / Walking) in Settings controls both the minimum-speed gate and the acceleration thresholds used by `TelemetryEngine`. Walking mode has no speed floor, Car mode keeps the original 5 m/s guard. Stored in the `settings` table via Room migration 1→2.
+
 ## [0.0.18] - 2026-06-10
 
 ### Fixed

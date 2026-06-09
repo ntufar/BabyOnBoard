@@ -79,6 +79,38 @@ enum class GeofencePurpose {
     ARRIVAL, MODE_TRIGGER
 }
 
+enum class SensitivityMode {
+    CAR, BUS, TRAIN, WALKING;
+
+    val minSpeedMs: Double get() = when (this) {
+        CAR     -> 5.0
+        BUS     -> 2.0
+        TRAIN   -> 0.5
+        WALKING -> 0.0
+    }
+
+    val longAccelThreshold: Double get() = when (this) {
+        CAR     -> 3.5
+        BUS     -> 2.5
+        TRAIN   -> 2.0
+        WALKING -> 1.5
+    }
+
+    val latAccelThreshold: Double get() = when (this) {
+        CAR     -> 4.0
+        BUS     -> 3.0
+        TRAIN   -> 2.5
+        WALKING -> 1.5
+    }
+
+    val roughnessThreshold: Double get() = when (this) {
+        CAR     -> 2.0
+        BUS     -> 1.5
+        TRAIN   -> 1.0
+        WALKING -> 0.7
+    }
+}
+
 data class Settings(
     val autoStart: Boolean,
     val btTriggerDeviceId: String?,
@@ -86,5 +118,6 @@ data class Settings(
     val reminderEscalation: Int,
     val retentionDays: Int,
     val units: String,
-    val emergencyNumber: String
+    val emergencyNumber: String,
+    val sensitivity: SensitivityMode = SensitivityMode.CAR
 )
