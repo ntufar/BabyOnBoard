@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.0.17] - 2026-06-10
+
+### Fixed
+- **No data recorded without GPS fix**: `TripForegroundService` previously used `combine()` on location and motion flows, which required both to emit before any data was processed. Motion events are now processed immediately on every sensor frame using the last known location as context; if no GPS fix has arrived yet, event detection still runs with coordinates defaulting to 0,0. This fixes recording on trains and in environments with poor GPS coverage.
+- **GPS-only location provider**: `LocationSource` now uses `FusedLocationProviderClient` instead of raw `GPS_PROVIDER`, enabling location from GPS, Wi-Fi, and cell towers so the pipeline receives position data in tunnels, stations, and other GPS-challenged environments.
+
+### Added
+- **Live telemetry graphs**: `LiveTripScreen` now shows a rolling sparkline chart of speed (km/h) and longitudinal acceleration (m/s²) while a trip is in progress, rendered via Compose Canvas with a zero-reference line on the acceleration chart.
+
 ## [0.0.16] - 2026-06-09
 
 ### Added

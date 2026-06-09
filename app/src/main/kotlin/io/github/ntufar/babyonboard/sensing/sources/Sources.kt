@@ -7,44 +7,54 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.location.Location
-import android.location.LocationListener
-import android.location.LocationManager
-import android.os.Bundle
+import android.os.Looper
 import androidx.core.content.ContextCompat
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationCallback
+import com.google.android.gms.location.LocationRequest
+import com.google.android.gms.location.LocationResult
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.Priority
 import io.github.ntufar.babyonboard.sensing.engine.RawSensorData
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 
-class LocationSource(private val context: Context) : LocationListener {
-    private val locationManager = context.getSystemService(LocationManager::class.java)
+class LocationSource(private val context: Context) {
+    private val fusedClient: FusedLocationProviderClient =
+        LocationServices.getFusedLocationProviderClient(context)
     private val _locationFlow = MutableSharedFlow<RawSensorData>(extraBufferCapacity = 10)
     val locationFlow: SharedFlow<RawSensorData> = _locationFlow
+
+    private val locationCallback = object : LocationCallback() {
+        override fun onLocationResult(result: LocationResult) {
+            val location = result.lastLocation ?: return
+            _locationFlow.tryEmit(RawSensorData(
+                timestamp = System.currentTimeMillis(),
+                lat = location.latitude,
+                lng = location.longitude,
+                speed = location.speed.toDouble(),
+                latAccel = 0.0,
+                longAccel = 0.0,
+                vertAccel = 0.0,
+                yawRate = 0.0,
+                altitude = location.altitude
+            ))
+        }
+    }
 
     fun start() {
         if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION)
             == PackageManager.PERMISSION_GRANTED
         ) {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1000L, 1f, this)
+            val request = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000L)
+                .setMinUpdateIntervalMillis(500L)
+                .build()
+            fusedClient.requestLocationUpdates(request, locationCallback, Looper.getMainLooper())
         }
     }
 
     fun stop() {
-        locationManager.removeUpdates(this)
-    }
-
-    override fun onLocationChanged(location: Location) {
-        _locationFlow.tryEmit(RawSensorData(
-            timestamp = System.currentTimeMillis(),
-            lat = location.latitude,
-            lng = location.longitude,
-            speed = location.speed.toDouble(),
-            latAccel = 0.0,
-            longAccel = 0.0,
-            vertAccel = 0.0,
-            yawRate = 0.0,
-            altitude = location.altitude
-        ))
+        fusedClient.removeLocationUpdates(locationCallback)
     }
 }
 

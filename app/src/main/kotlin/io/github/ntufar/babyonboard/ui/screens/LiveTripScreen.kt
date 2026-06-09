@@ -1,5 +1,6 @@
 package io.github.ntufar.babyonboard.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -9,12 +10,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.github.ntufar.babyonboard.domain.model.EventType
 import io.github.ntufar.babyonboard.domain.model.TelemetryEvent
 import io.github.ntufar.babyonboard.ui.viewmodel.TripViewModel
+import kotlin.math.abs
 
 @Composable
 fun LiveTripScreen(
@@ -25,6 +31,8 @@ fun LiveTripScreen(
     val elapsed by viewModel.elapsedSeconds.collectAsState()
     val speed by viewModel.currentSpeed.collectAsState()
     val events by viewModel.events.collectAsState()
+    val speedHistory by viewModel.speedHistory.collectAsState()
+    val accelHistory by viewModel.accelHistory.collectAsState()
 
     val harshEvents = events.count { it.severity > 0.5f }
 
@@ -153,6 +161,46 @@ fun LiveTripScreen(
             }
         }
 
+        if (speedHistory.size >= 2 || accelHistory.size >= 2) {
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Live Telemetry",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    if (speedHistory.size >= 2) {
+                        SparklineChart(
+                            data = speedHistory,
+                            label = "Speed (km/h)",
+                            lineColor = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp)
+                        )
+                    }
+                    if (accelHistory.size >= 2) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SparklineChart(
+                            data = accelHistory,
+                            label = "Acceleration (m/s²)",
+                            lineColor = MaterialTheme.colorScheme.tertiary,
+                            zeroLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp)
+                        )
+                    }
+                }
+            }
+        }
+
         if (events.isNotEmpty()) {
             val lastEvents = events.takeLast(5)
             Card(modifier = Modifier.fillMaxWidth()) {
@@ -219,6 +267,57 @@ fun LiveTripScreen(
         }
 
         Spacer(modifier = Modifier.height(16.dp))
+    }
+}
+
+@Composable
+fun SparklineChart(
+    data: List<Float>,
+    modifier: Modifier = Modifier,
+    lineColor: Color = Color.Blue,
+    label: String = "",
+    zeroLine: Boolean = false
+) {
+    if (data.size < 2) return
+    Column(modifier = modifier) {
+        if (label.isNotEmpty()) {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+        }
+        val strokeWidthPx = 2f
+        val minVal = data.min()
+        val maxVal = data.max()
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val range = maxVal - minVal
+            val effectiveMin = if (range < 0.1f) minVal - 0.5f else minVal
+            val effectiveMax = if (range < 0.1f) maxVal + 0.5f else maxVal
+            val effectiveRange = effectiveMax - effectiveMin
+
+            fun yFor(v: Float): Float =
+                size.height - ((v - effectiveMin) / effectiveRange) * size.height
+
+            if (zeroLine && effectiveMin < 0f && effectiveMax > 0f) {
+                val zeroY = yFor(0f)
+                drawLine(
+                    color = lineColor.copy(alpha = 0.3f),
+                    start = Offset(0f, zeroY),
+                    end = Offset(size.width, zeroY),
+                    strokeWidth = strokeWidthPx
+                )
+            }
+
+            val path = Path()
+            data.forEachIndexed { index, value ->
+                val x = if (data.size > 1) index.toFloat() / (data.size - 1) * size.width else 0f
+                val y = yFor(value)
+                if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            drawPath(path, color = lineColor, style = Stroke(width = strokeWidthPx))
+        }
     }
 }
 

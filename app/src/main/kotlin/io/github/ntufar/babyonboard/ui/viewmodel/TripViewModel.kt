@@ -47,6 +47,12 @@ class TripViewModel @Inject constructor(
     private val _currentSpeed = MutableStateFlow(0.0)
     val currentSpeed: StateFlow<Double> = _currentSpeed
 
+    private val _speedHistory = MutableStateFlow<List<Float>>(emptyList())
+    val speedHistory: StateFlow<List<Float>> = _speedHistory
+
+    private val _accelHistory = MutableStateFlow<List<Float>>(emptyList())
+    val accelHistory: StateFlow<List<Float>> = _accelHistory
+
     private var timerJob: Job? = null
     private var receiverRegistered = false
 
@@ -58,7 +64,9 @@ class TripViewModel @Inject constructor(
             when (intent.action) {
                 TripForegroundService.ACTION_SPEED_UPDATE -> {
                     val speed = intent.getDoubleExtra(TripForegroundService.EXTRA_SPEED, 0.0)
-                    updateTripWithSpeed(speed)
+                    val longAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_LONG_ACCEL, 0.0)
+                    val vertAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_VERT_ACCEL, 0.0)
+                    updateTripWithSpeed(speed, longAccel, vertAccel)
                 }
                 TripForegroundService.ACTION_EVENT_DETECTED -> {
                     val type = intent.getStringExtra(TripForegroundService.EXTRA_EVENT_TYPE)
@@ -118,6 +126,8 @@ class TripViewModel @Inject constructor(
             _events.value = emptyList()
             _elapsedSeconds.value = 0L
             _currentSpeed.value = 0.0
+            _speedHistory.value = emptyList()
+            _accelHistory.value = emptyList()
             if (startTimerOnTripStart) startTimer()
             registerSensorReceiver()
             startForegroundService(trip.id, babyMode)
@@ -191,9 +201,11 @@ class TripViewModel @Inject constructor(
         }
     }
 
-    private fun updateTripWithSpeed(speedKmh: Double) {
+    private fun updateTripWithSpeed(speedKmh: Double, longAccel: Double = 0.0, @Suppress("UNUSED_PARAMETER") vertAccel: Double = 0.0) {
         val trip = _currentTrip.value ?: return
         _currentSpeed.value = speedKmh
+        _speedHistory.value = (_speedHistory.value + speedKmh.toFloat()).takeLast(60)
+        _accelHistory.value = (_accelHistory.value + longAccel.toFloat()).takeLast(60)
         val elapsed = _elapsedSeconds.value.coerceAtLeast(1)
         val newDist = trip.distanceM + (speedKmh / 3.6)
         val maxS = maxOf(trip.maxSpeed, speedKmh)

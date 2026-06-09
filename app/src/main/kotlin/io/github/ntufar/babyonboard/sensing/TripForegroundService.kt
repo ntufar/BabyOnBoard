@@ -22,7 +22,6 @@ import io.github.ntufar.babyonboard.sensing.sources.DistractionSource
 import io.github.ntufar.babyonboard.sensing.sources.LocationSource
 import io.github.ntufar.babyonboard.sensing.sources.MotionSource
 import kotlinx.coroutines.*
-import kotlinx.coroutines.flow.combine
 import javax.inject.Inject
 import kotlin.math.abs
 
@@ -41,6 +40,8 @@ class TripForegroundService : Service() {
     private val accelHistory = mutableListOf<Double>()
     private val crashUseCase = EvaluateCrashUseCase()
     private var crashAlerted = false
+
+    @Volatile private var latestLocation: io.github.ntufar.babyonboard.sensing.engine.RawSensorData? = null
 
     private val screenReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -73,6 +74,7 @@ class TripForegroundService : Service() {
 
         telemetryEngine = TelemetryEngine(babyMode = babyMode)
         telemetryEngine.resetWindows()
+        latestLocation = null
         locationSource.start()
         motionSource.start()
         distractionSource.start()
@@ -80,8 +82,16 @@ class TripForegroundService : Service() {
         createNotificationChannel()
         startForeground(NOTIFICATION_ID, buildNotification())
 
+        // Update latest GPS location whenever it arrives
         serviceScope.launch {
-            locationSource.locationFlow.combine(motionSource.sensorFlow) { loc, motion ->
+            locationSource.locationFlow.collect { loc ->
+                latestLocation = loc
+            }
+        }
+
+        // Process every motion event immediately, using the last known location if available
+        serviceScope.launch {
+            motionSource.sensorFlow.collect { motion ->
                 val (worldLong, worldLat, worldVert) = if (motion.rotationVector != null) {
                     rotateToWorldFrame(
                         motion.longAccel, motion.latAccel, motion.vertAccel,
@@ -90,13 +100,24 @@ class TripForegroundService : Service() {
                 } else {
                     Triple(motion.longAccel, motion.latAccel, motion.vertAccel)
                 }
-                loc.copy(
-                    latAccel = worldLat,
-                    longAccel = worldLong,
-                    vertAccel = worldVert,
-                    yawRate = motion.yawRate
-                )
-            }.collect { data ->
+                val loc = latestLocation
+                val data = if (loc != null) {
+                    loc.copy(
+                        latAccel = worldLat,
+                        longAccel = worldLong,
+                        vertAccel = worldVert,
+                        yawRate = motion.yawRate,
+                        timestamp = motion.timestamp
+                    )
+                } else {
+                    motion.copy(
+                        lat = 0.0, lng = 0.0, speed = 0.0,
+                        latAccel = worldLat,
+                        longAccel = worldLong,
+                        vertAccel = worldVert
+                    )
+                }
+
                 val frame = telemetryEngine.processRawData(data)
                 serviceScope.launch {
                     tripRepository.saveMetricSample(MetricSample(
@@ -140,6 +161,8 @@ class TripForegroundService : Service() {
 
                 val speedIntent = Intent(ACTION_SPEED_UPDATE).apply {
                     putExtra(EXTRA_SPEED, speedKmh)
+                    putExtra(EXTRA_LONG_ACCEL, frame.longAccel)
+                    putExtra(EXTRA_VERT_ACCEL, frame.vertAccel)
                     putExtra(EXTRA_TRIP_ID, tripId)
                 }
                 sendBroadcast(speedIntent)
@@ -235,6 +258,8 @@ class TripForegroundService : Service() {
         const val EXTRA_EVENT_VALUE = "event_value"
         const val EXTRA_EVENT_CONFIDENCE = "event_confidence"
         const val EXTRA_EVENT_SEVERITY = "event_severity"
+        const val EXTRA_LONG_ACCEL = "long_accel"
+        const val EXTRA_VERT_ACCEL = "vert_accel"
         const val ACTION_SPEED_UPDATE = "io.github.ntufar.babyonboard.SPEED_UPDATE"
         const val ACTION_EVENT_DETECTED = "io.github.ntufar.babyonboard.EVENT_DETECTED"
         const val ACTION_CRASH_DETECTED = "io.github.ntufar.babyonboard.CRASH_DETECTED"
