@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.20] - 2026-06-10
+
+### Changed
+- No functional changes; version bump to align release track.
+
 ## [0.0.19] - 2026-06-10
 
 ### Added
