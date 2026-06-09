@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.0.18] - 2026-06-10
+
+### Fixed
+- **Live telemetry graphs not visible without driving**: The "Live Telemetry" card is now always shown during a trip; it displays a "Waiting for sensor data…" placeholder until data arrives instead of being hidden entirely.
+- **No events or graph data when walking**: Removed the `speed > 5.0 m/s` guard from all event detectors (brake, accel, corner, rough road, swerve) so the telemetry pipeline responds to accelerometer input regardless of GPS speed.
+
 ## [0.0.17] - 2026-06-10
 
 ### Fixed

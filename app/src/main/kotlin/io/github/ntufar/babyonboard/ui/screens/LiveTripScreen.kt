@@ -161,20 +161,20 @@ fun LiveTripScreen(
             }
         }
 
-        if (speedHistory.size >= 2 || accelHistory.size >= 2) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Live Telemetry",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
                 )
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Live Telemetry",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(12.dp))
+                if (speedHistory.size >= 2 || accelHistory.size >= 2) {
                     if (speedHistory.size >= 2) {
                         SparklineChart(
                             data = speedHistory,
@@ -197,6 +197,12 @@ fun LiveTripScreen(
                                 .height(64.dp)
                         )
                     }
+                } else {
+                    Text(
+                        text = "Waiting for sensor data…",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
             }
         }

@@ -76,7 +76,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
         val events = mutableListOf<TelemetryEvent>()
         val ts = frame.timestamp
 
-        if (frame.longAccel <= -longAccelThreshold && frame.speed > 5.0) {
+        if (frame.longAccel <= -longAccelThreshold) {
             events.add(TelemetryEvent(
                 id = "${tripId}_brake_$ts", tripId = tripId, ts = ts,
                 type = EventType.BRAKE, severity = 0.8f,
@@ -85,7 +85,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
             ))
         }
 
-        if (frame.longAccel >= longAccelThreshold && frame.speed > 5.0) {
+        if (frame.longAccel >= longAccelThreshold) {
             events.add(TelemetryEvent(
                 id = "${tripId}_accel_$ts", tripId = tripId, ts = ts,
                 type = EventType.ACCEL, severity = 0.8f,
@@ -112,7 +112,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
 
         vertAccelWindow.add(frame.vertAccel)
         if (vertAccelWindow.size > maxVertAccelWindowSize) vertAccelWindow.removeAt(0)
-        if (vertAccelWindow.size >= 10 && frame.speed > 5.0) {
+        if (vertAccelWindow.size >= 10) {
             val variance = computeVariance(vertAccelWindow)
             if (variance > roughnessThreshold) {
                 events.add(TelemetryEvent(
@@ -126,7 +126,7 @@ class TelemetryEngine(private val babyMode: Boolean) {
 
         yawWindow.add(YawSample(ts, frame.yawRate, frame.latAccel))
         if (yawWindow.size > maxYawWindowSize) yawWindow.removeAt(0)
-        if (yawWindow.size >= 5 && frame.speed > 5.0) {
+        if (yawWindow.size >= 5) {
             val swerveEvent = detectSwerve(tripId, frame)
             if (swerveEvent != null) {
                 events.add(swerveEvent)
