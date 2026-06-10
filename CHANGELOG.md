@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.22] - 2026-06-10
+
+### Fixed
+- **"Waiting for sensor data" stays indefinitely indoors**: `MotionSource.emitFused()` previously required both accelerometer *and* gyroscope data before emitting. On devices without a gyroscope (or where gyro is slow to warm up), `sensorFlow` never emitted and the Live Telemetry card stayed on the "Waiting for sensor data…" placeholder forever. Gyro is now optional — the flow emits on every accelerometer frame with `yawRate = 0.0` when no gyro data is available. Also added null-guards in `MotionSource.start()` so registering absent sensors doesn't cause an NPE.
+
 ## [0.0.21] - 2026-06-10
 
 ### Fixed

@@ -74,9 +74,9 @@ class MotionSource(context: Context) : SensorEventListener {
         val accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_LINEAR_ACCELERATION)
         val gyro = sensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE)
         val rotation = sensorManager.getDefaultSensor(Sensor.TYPE_ROTATION_VECTOR)
-        sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
-        sensorManager.registerListener(this, gyro, SensorManager.SENSOR_DELAY_GAME)
-        sensorManager.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME)
+        if (accelerometer != null) sensorManager.registerListener(this, accelerometer, SensorManager.SENSOR_DELAY_GAME)
+        if (gyro != null) sensorManager.registerListener(this, gyro, SensorManager.SENSOR_DELAY_GAME)
+        if (rotation != null) sensorManager.registerListener(this, rotation, SensorManager.SENSOR_DELAY_GAME)
     }
 
     fun stop() {
@@ -116,8 +116,7 @@ class MotionSource(context: Context) : SensorEventListener {
 
     private fun emitFused() {
         val accel = latestAccel ?: return
-        val gyro = latestGyro ?: return
-        _sensorFlow.tryEmit(accel.copy(yawRate = gyro.yawRate, rotationVector = latestRotation))
+        _sensorFlow.tryEmit(accel.copy(yawRate = latestGyro?.yawRate ?: 0.0, rotationVector = latestRotation))
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {}
