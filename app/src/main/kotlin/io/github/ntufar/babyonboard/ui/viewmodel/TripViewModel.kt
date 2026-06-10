@@ -53,11 +53,20 @@ class TripViewModel @Inject constructor(
     private val _accelHistory = MutableStateFlow<List<Float>>(emptyList())
     val accelHistory: StateFlow<List<Float>> = _accelHistory
 
+    private val _debugLogs = MutableStateFlow<List<String>>(emptyList())
+    val debugLogs: StateFlow<List<String>> = _debugLogs
+
     private var timerJob: Job? = null
     private var receiverRegistered = false
 
     /** @VisibleForTesting */
     var startTimerOnTripStart = true
+
+    private fun addDebugLog(message: String) {
+        val ts = java.text.SimpleDateFormat("HH:mm:ss.SSS", java.util.Locale.US)
+            .format(java.util.Date())
+        _debugLogs.value = (_debugLogs.value + "[$ts] $message").takeLast(50)
+    }
 
     private val sensorReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -67,6 +76,10 @@ class TripViewModel @Inject constructor(
                     val longAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_LONG_ACCEL, 0.0)
                     val vertAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_VERT_ACCEL, 0.0)
                     updateTripWithSpeed(speed, longAccel, vertAccel)
+                }
+                TripForegroundService.ACTION_DEBUG_LOG -> {
+                    val msg = intent.getStringExtra(TripForegroundService.EXTRA_DEBUG_MESSAGE) ?: return
+                    addDebugLog("SVC: $msg")
                 }
                 TripForegroundService.ACTION_EVENT_DETECTED -> {
                     val type = intent.getStringExtra(TripForegroundService.EXTRA_EVENT_TYPE)
@@ -105,11 +118,13 @@ class TripViewModel @Inject constructor(
             val filter = IntentFilter().apply {
                 addAction(TripForegroundService.ACTION_SPEED_UPDATE)
                 addAction(TripForegroundService.ACTION_EVENT_DETECTED)
+                addAction(TripForegroundService.ACTION_DEBUG_LOG)
             }
             context.registerReceiver(sensorReceiver, filter, Context.RECEIVER_EXPORTED)
             receiverRegistered = true
-        } catch (_: RuntimeException) {
-            // Ignore in test environments where Android stubs throw
+            addDebugLog("VM: receiver registered")
+        } catch (e: RuntimeException) {
+            addDebugLog("VM: registerReceiver failed: ${e.message}")
         }
     }
 
@@ -203,7 +218,13 @@ class TripViewModel @Inject constructor(
     }
 
     private fun updateTripWithSpeed(speedKmh: Double, longAccel: Double = 0.0, @Suppress("UNUSED_PARAMETER") vertAccel: Double = 0.0) {
-        val trip = _currentTrip.value ?: return
+        val trip = _currentTrip.value ?: run {
+            addDebugLog("VM: speed update dropped — no active trip")
+            return
+        }
+        if (_speedHistory.value.isEmpty()) {
+            addDebugLog("VM: first speed update received (${speedKmh.toInt()} km/h)")
+        }
         _currentSpeed.value = speedKmh
         _speedHistory.value = (_speedHistory.value + speedKmh.toFloat()).takeLast(60)
         _accelHistory.value = (_accelHistory.value + longAccel.toFloat()).takeLast(60)
@@ -246,8 +267,9 @@ class TripViewModel @Inject constructor(
                 putExtra(TripForegroundService.EXTRA_SENSITIVITY, sensitivity)
             }
             context.startForegroundService(intent)
-        } catch (_: RuntimeException) {
-            // Ignore in test environments where Android stubs throw
+            addDebugLog("VM: startForegroundService sent (tripId=$tripId sensitivity=$sensitivity)")
+        } catch (e: RuntimeException) {
+            addDebugLog("VM: startForegroundService failed: ${e.javaClass.simpleName}: ${e.message}")
         }
     }
 

@@ -89,10 +89,12 @@ class TripForegroundService : Service() {
                 NOTIFICATION_ID, buildNotification(),
                 android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
             )
-        } catch (_: SecurityException) {
+            sendDebugLog("Service started (location type)")
+        } catch (e: SecurityException) {
             // Location permission not granted; start without the location type so
             // motion-only recording (Walking indoors) still works.
             startForeground(NOTIFICATION_ID, buildNotification())
+            sendDebugLog("Service started (no location permission: ${e.message})")
         }
 
         // Update latest GPS location whenever it arrives
@@ -101,6 +103,8 @@ class TripForegroundService : Service() {
                 latestLocation = loc
             }
         }
+
+        var motionEventCount = 0
 
         // Process every motion event immediately, using the last known location if available
         serviceScope.launch {
@@ -131,6 +135,11 @@ class TripForegroundService : Service() {
                     )
                 }
 
+                motionEventCount++
+                if (motionEventCount == 1) {
+                    sendDebugLog("First motion event: speed=${data.speed} longAccel=${data.longAccel} hasGps=${loc != null}")
+                }
+
                 val frame = telemetryEngine.processRawData(data)
                 serviceScope.launch {
                     runCatching {
@@ -144,6 +153,8 @@ class TripForegroundService : Service() {
                             yawRate = frame.yawRate,
                             altitude = frame.altitude
                         ))
+                    }.onFailure { e ->
+                        sendDebugLog("saveMetricSample failed: ${e.javaClass.simpleName}: ${e.message}")
                     }
                 }
                 val events = telemetryEngine.detectEvents(frame, tripId)
@@ -279,8 +290,16 @@ class TripForegroundService : Service() {
         const val ACTION_SPEED_UPDATE = "io.github.ntufar.babyonboard.SPEED_UPDATE"
         const val ACTION_EVENT_DETECTED = "io.github.ntufar.babyonboard.EVENT_DETECTED"
         const val ACTION_CRASH_DETECTED = "io.github.ntufar.babyonboard.CRASH_DETECTED"
+        const val ACTION_DEBUG_LOG = "io.github.ntufar.babyonboard.DEBUG_LOG"
         const val EXTRA_CONFIDENCE = "confidence"
         const val EXTRA_LAT = "lat"
         const val EXTRA_LNG = "lng"
+        const val EXTRA_DEBUG_MESSAGE = "debug_message"
+    }
+
+    private fun sendDebugLog(message: String) {
+        sendBroadcast(Intent(ACTION_DEBUG_LOG).apply {
+            putExtra(EXTRA_DEBUG_MESSAGE, message)
+        })
     }
 }

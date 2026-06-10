@@ -33,6 +33,7 @@ fun LiveTripScreen(
     val events by viewModel.events.collectAsState()
     val speedHistory by viewModel.speedHistory.collectAsState()
     val accelHistory by viewModel.accelHistory.collectAsState()
+    val debugLogs by viewModel.debugLogs.collectAsState()
 
     val harshEvents = events.count { it.severity > 0.5f }
 
@@ -250,6 +251,44 @@ fun LiveTripScreen(
                     modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
                     style = MaterialTheme.typography.labelMedium
                 )
+            }
+        }
+
+        if (debugLogs.isNotEmpty()) {
+            var expanded by remember { mutableStateOf(true) }
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f)
+                )
+            ) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Debug Log (${debugLogs.size})",
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onErrorContainer
+                        )
+                        TextButton(onClick = { expanded = !expanded }) {
+                            Text(if (expanded) "Hide" else "Show")
+                        }
+                    }
+                    if (expanded) {
+                        debugLogs.takeLast(20).forEach { line ->
+                            Text(
+                                text = line,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.padding(top = 2.dp)
+                            )
+                        }
+                    }
+                }
             }
         }
 
