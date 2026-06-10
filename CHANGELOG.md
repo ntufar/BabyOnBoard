@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.21] - 2026-06-10
+
+### Fixed
+- **Unit test failure**: `TripViewModelTest` mocks now stub `getSettings()` so tests pass after `startTrip` was updated to read sensitivity from settings.
+
 ## [0.0.20] - 2026-06-10
 
 ### Changed

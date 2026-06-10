@@ -2,6 +2,8 @@ package io.github.ntufar.babyonboard.ui.viewmodel
 
 import android.content.Context
 import com.google.common.truth.Truth.assertThat
+import io.github.ntufar.babyonboard.domain.model.SensitivityMode
+import io.github.ntufar.babyonboard.domain.model.Settings
 import io.github.ntufar.babyonboard.domain.model.Trip
 import io.github.ntufar.babyonboard.domain.repository.TripRepository
 import io.mockk.coEvery
@@ -44,6 +46,11 @@ class TripViewModelTest {
         coEvery { repo.getTripHistory() } returns emptyList()
         coEvery { repo.saveTrip(any()) } returns Unit
         coEvery { repo.updateTrip(any()) } returns Unit
+        coEvery { repo.getSettings() } returns Settings(
+            autoStart = false, btTriggerDeviceId = null, dndInTrip = true,
+            reminderEscalation = 1, retentionDays = 30, units = "km",
+            emergencyNumber = "112", sensitivity = SensitivityMode.CAR
+        )
         return repo
     }
 
