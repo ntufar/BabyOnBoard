@@ -58,6 +58,7 @@ class TripViewModel @Inject constructor(
 
     private var timerJob: Job? = null
     private var receiverRegistered = false
+    private var lastSpeedUpdateMs = 0L
 
     /** @VisibleForTesting */
     var startTimerOnTripStart = true
@@ -144,6 +145,7 @@ class TripViewModel @Inject constructor(
             _currentSpeed.value = 0.0
             _speedHistory.value = emptyList()
             _accelHistory.value = emptyList()
+            lastSpeedUpdateMs = 0L
             if (startTimerOnTripStart) startTimer()
             registerSensorReceiver()
             startForegroundService(trip.id, babyMode, sensitivity.name)
@@ -228,8 +230,11 @@ class TripViewModel @Inject constructor(
         _currentSpeed.value = speedKmh
         _speedHistory.value = (_speedHistory.value + speedKmh.toFloat()).takeLast(60)
         _accelHistory.value = (_accelHistory.value + longAccel.toFloat()).takeLast(60)
+        val now = System.currentTimeMillis()
+        val dtSeconds = if (lastSpeedUpdateMs > 0) (now - lastSpeedUpdateMs) / 1000.0 else 0.0
+        lastSpeedUpdateMs = now
         val elapsed = _elapsedSeconds.value.coerceAtLeast(1)
-        val newDist = trip.distanceM + (speedKmh / 3.6)
+        val newDist = trip.distanceM + (speedKmh / 3.6) * dtSeconds
         val maxS = maxOf(trip.maxSpeed, speedKmh)
         _currentTrip.value = trip.copy(
             distanceM = newDist,

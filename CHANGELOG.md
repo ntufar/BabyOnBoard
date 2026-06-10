@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.25] - 2026-06-11
+
+### Fixed
+- **Distance accumulates while stationary**: `updateTripWithSpeed` was adding `speed (m/s)` as metres per call, treating every motion-sensor event as if it lasted 1 second. At ~50 Hz this multiplied distance by ~50×, so GPS noise of 0.3 m/s showed as ~900 m/min. Now uses proper `speed × Δt` integration where Δt is the actual milliseconds since the previous call.
+
 ## [0.0.24] - 2026-06-11
 
 ### Added
