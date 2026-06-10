@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.24] - 2026-06-11
+
+### Added
+- **Debug log overlay on Live Trip screen**: A collapsible card shows timestamped diagnostic entries (service start type, first motion event, DB save failures, receiver registration, first speed update). Aids debugging; will be removed once the sensor pipeline is confirmed stable.
+
+### Fixed
+- **Lint error: 3-arg `startForeground` requires API 29**: Guarded behind `Build.VERSION.SDK_INT >= Q`; API 26–28 devices fall back to the 2-argument form.
+
 ## [0.0.23] - 2026-06-10
 
 ### Fixed
