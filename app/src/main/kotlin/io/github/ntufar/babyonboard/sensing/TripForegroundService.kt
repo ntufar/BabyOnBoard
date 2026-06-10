@@ -84,17 +84,22 @@ class TripForegroundService : Service() {
         distractionSource.start()
 
         createNotificationChannel()
-        try {
-            startForeground(
-                NOTIFICATION_ID, buildNotification(),
-                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
-            )
-            sendDebugLog("Service started (location type)")
-        } catch (e: SecurityException) {
-            // Location permission not granted; start without the location type so
-            // motion-only recording (Walking indoors) still works.
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+            try {
+                startForeground(
+                    NOTIFICATION_ID, buildNotification(),
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+                )
+                sendDebugLog("Service started (location type, API ${android.os.Build.VERSION.SDK_INT})")
+            } catch (e: SecurityException) {
+                // Location permission not granted; fall back to plain foreground so
+                // motion-only recording (Walking indoors) still works.
+                startForeground(NOTIFICATION_ID, buildNotification())
+                sendDebugLog("Service started (no location permission: ${e.message})")
+            }
+        } else {
             startForeground(NOTIFICATION_ID, buildNotification())
-            sendDebugLog("Service started (no location permission: ${e.message})")
+            sendDebugLog("Service started (API ${android.os.Build.VERSION.SDK_INT}, no type arg)")
         }
 
         // Update latest GPS location whenever it arrives
