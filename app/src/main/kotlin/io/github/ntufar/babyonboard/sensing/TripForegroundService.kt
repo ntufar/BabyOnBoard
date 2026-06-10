@@ -30,7 +30,7 @@ import kotlin.math.abs
 class TripForegroundService : Service() {
 
     @Inject lateinit var tripRepository: TripRepository
-    private val serviceScope = CoroutineScope(Dispatchers.Default + Job())
+    private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private lateinit var telemetryEngine: TelemetryEngine
     private lateinit var locationSource: LocationSource
     private lateinit var motionSource: MotionSource
@@ -84,7 +84,16 @@ class TripForegroundService : Service() {
         distractionSource.start()
 
         createNotificationChannel()
-        startForeground(NOTIFICATION_ID, buildNotification())
+        try {
+            startForeground(
+                NOTIFICATION_ID, buildNotification(),
+                android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_LOCATION
+            )
+        } catch (_: SecurityException) {
+            // Location permission not granted; start without the location type so
+            // motion-only recording (Walking indoors) still works.
+            startForeground(NOTIFICATION_ID, buildNotification())
+        }
 
         // Update latest GPS location whenever it arrives
         serviceScope.launch {
@@ -124,16 +133,18 @@ class TripForegroundService : Service() {
 
                 val frame = telemetryEngine.processRawData(data)
                 serviceScope.launch {
-                    tripRepository.saveMetricSample(MetricSample(
-                        tripId = tripId,
-                        ts = frame.timestamp,
-                        speed = frame.speed,
-                        longAccel = frame.longAccel,
-                        latAccel = frame.latAccel,
-                        vertAccel = frame.vertAccel,
-                        yawRate = frame.yawRate,
-                        altitude = frame.altitude
-                    ))
+                    runCatching {
+                        tripRepository.saveMetricSample(MetricSample(
+                            tripId = tripId,
+                            ts = frame.timestamp,
+                            speed = frame.speed,
+                            longAccel = frame.longAccel,
+                            latAccel = frame.latAccel,
+                            vertAccel = frame.vertAccel,
+                            yawRate = frame.yawRate,
+                            altitude = frame.altitude
+                        ))
+                    }
                 }
                 val events = telemetryEngine.detectEvents(frame, tripId)
 

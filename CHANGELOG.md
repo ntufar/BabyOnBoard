@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.0.23] - 2026-06-10
+
+### Fixed
+- **"Waiting for sensor data" stays indefinitely (indoors / Walking mode) — actual fix**: Two compounding bugs were identified after 0.0.22:
+  1. `TripForegroundService.serviceScope` used a plain `Job()`. Any unhandled exception in the nested `saveMetricSample` coroutine (e.g. transient DB error, schema mismatch on upgrade) cancelled the *entire* scope — killing the `motionSource.sensorFlow.collect` pipeline after the first event. Changed to `SupervisorJob()` so nested-launch failures are isolated and the telemetry pipeline keeps running.
+  2. On Android 14 (targetSdk 35), calling the two-argument `startForeground(id, notification)` for a service that declares `foregroundServiceType="location"` throws `SecurityException` if the location permission is not held at that moment (e.g. the user is testing motion-only / Walking indoors). This crashed `onStartCommand` before the sensor-collection coroutines were ever launched. Now calls the three-argument `startForeground(id, notification, FOREGROUND_SERVICE_TYPE_LOCATION)` with a fallback to the two-argument form when the permission is absent, so motion-only recording works without GPS.
+  - `saveMetricSample` nested launch is also wrapped in `runCatching` for belt-and-suspenders.
+
 ## [0.0.22] - 2026-06-10
 
 ### Fixed
