@@ -2,6 +2,9 @@ package io.github.ntufar.babyonboard.ui.screens
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -33,6 +36,8 @@ fun LiveTripScreen(
     val events by viewModel.events.collectAsState()
     val speedHistory by viewModel.speedHistory.collectAsState()
     val accelHistory by viewModel.accelHistory.collectAsState()
+    val vertAccelHistory by viewModel.vertAccelHistory.collectAsState()
+    val latAccelHistory by viewModel.latAccelHistory.collectAsState()
     val debugLogs by viewModel.debugLogs.collectAsState()
 
     val harshEvents = events.count { it.severity > 0.5f }
@@ -53,34 +58,35 @@ fun LiveTripScreen(
             fontWeight = FontWeight.Bold
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer
-            )
-        ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Text(
-                    text = formatDuration(elapsed),
-                    style = MaterialTheme.typography.displayLarge,
-                    fontWeight = FontWeight.ExtraBold,
-                    fontSize = 48.sp
-                )
-                Text(
-                    text = "Elapsed Time",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-        }
-
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            Card(
+                modifier = Modifier.weight(1f),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
+                )
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = formatDuration(elapsed),
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.ExtraBold
+                    )
+                    Text(
+                        text = "Duration",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer
+                    )
+                }
+            }
+
             Card(
                 modifier = Modifier.weight(1f),
                 colors = CardDefaults.cardColors(
@@ -190,8 +196,32 @@ fun LiveTripScreen(
                         Spacer(modifier = Modifier.height(12.dp))
                         SparklineChart(
                             data = accelHistory,
-                            label = "Acceleration (m/s²)",
+                            label = "Long. Accel (m/s²)",
                             lineColor = MaterialTheme.colorScheme.tertiary,
+                            zeroLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp)
+                        )
+                    }
+                    if (latAccelHistory.size >= 2) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SparklineChart(
+                            data = latAccelHistory,
+                            label = "Lat. Accel (m/s²)",
+                            lineColor = MaterialTheme.colorScheme.secondary,
+                            zeroLine = true,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(64.dp)
+                        )
+                    }
+                    if (vertAccelHistory.size >= 2) {
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SparklineChart(
+                            data = vertAccelHistory,
+                            label = "Vert. Accel (m/s²)",
+                            lineColor = MaterialTheme.colorScheme.error,
                             zeroLine = true,
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -279,13 +309,24 @@ fun LiveTripScreen(
                         }
                     }
                     if (expanded) {
-                        debugLogs.takeLast(20).forEach { line ->
-                            Text(
-                                text = line,
-                                style = MaterialTheme.typography.labelSmall,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                                modifier = Modifier.padding(top = 2.dp)
-                            )
+                        val listState = rememberLazyListState()
+                        LaunchedEffect(debugLogs.size) {
+                            if (debugLogs.isNotEmpty()) listState.animateScrollToItem(debugLogs.size - 1)
+                        }
+                        LazyColumn(
+                            state = listState,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 200.dp)
+                        ) {
+                            items(debugLogs) { line ->
+                                Text(
+                                    text = line,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
                         }
                     }
                 }
@@ -333,7 +374,7 @@ fun SparklineChart(
             )
             Spacer(modifier = Modifier.height(4.dp))
         }
-        val strokeWidthPx = 2f
+        val strokeWidthPx = 4f
         val minVal = data.min()
         val maxVal = data.max()
         Canvas(modifier = Modifier.fillMaxSize()) {

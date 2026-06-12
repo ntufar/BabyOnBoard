@@ -42,6 +42,10 @@ class TripForegroundService : Service() {
     private val crashUseCase = EvaluateCrashUseCase()
     private var crashAlerted = false
 
+    private var deadReckoningSpeedMs = 0.0
+    private var lastMotionTimestampMs = 0L
+    private var gpsWasAvailable = false
+
     @Volatile private var latestLocation: io.github.ntufar.babyonboard.sensing.engine.RawSensorData? = null
 
     private val screenReceiver = object : BroadcastReceiver() {
@@ -79,6 +83,9 @@ class TripForegroundService : Service() {
         telemetryEngine = TelemetryEngine(babyMode = babyMode, sensitivity = sensitivity)
         telemetryEngine.resetWindows()
         latestLocation = null
+        deadReckoningSpeedMs = 0.0
+        lastMotionTimestampMs = 0L
+        gpsWasAvailable = false
         locationSource.start()
         motionSource.start()
         distractionSource.start()
@@ -123,7 +130,16 @@ class TripForegroundService : Service() {
                     Triple(motion.longAccel, motion.latAccel, motion.vertAccel)
                 }
                 val loc = latestLocation
+                val dtSeconds = if (lastMotionTimestampMs > 0L)
+                    (motion.timestamp - lastMotionTimestampMs) / 1000.0 else 0.0
+                lastMotionTimestampMs = motion.timestamp
+
                 val data = if (loc != null) {
+                    if (!gpsWasAvailable) {
+                        sendDebugLog("GPS acquired, resetting dead reckoning")
+                    }
+                    gpsWasAvailable = true
+                    deadReckoningSpeedMs = loc.speed
                     loc.copy(
                         latAccel = worldLat,
                         longAccel = worldLong,
@@ -132,8 +148,13 @@ class TripForegroundService : Service() {
                         timestamp = motion.timestamp
                     )
                 } else {
+                    if (gpsWasAvailable) {
+                        sendDebugLog("GPS lost, switching to dead reckoning")
+                        gpsWasAvailable = false
+                    }
+                    deadReckoningSpeedMs = maxOf(0.0, deadReckoningSpeedMs + worldLong * dtSeconds)
                     motion.copy(
-                        lat = 0.0, lng = 0.0, speed = 0.0,
+                        lat = 0.0, lng = 0.0, speed = deadReckoningSpeedMs,
                         latAccel = worldLat,
                         longAccel = worldLong,
                         vertAccel = worldVert
@@ -194,6 +215,7 @@ class TripForegroundService : Service() {
                     putExtra(EXTRA_SPEED, speedKmh)
                     putExtra(EXTRA_LONG_ACCEL, frame.longAccel)
                     putExtra(EXTRA_VERT_ACCEL, frame.vertAccel)
+                    putExtra(EXTRA_LAT_ACCEL, frame.latAccel)
                     putExtra(EXTRA_TRIP_ID, tripId)
                 }
                 sendBroadcast(speedIntent)
@@ -292,6 +314,7 @@ class TripForegroundService : Service() {
         const val EXTRA_EVENT_SEVERITY = "event_severity"
         const val EXTRA_LONG_ACCEL = "long_accel"
         const val EXTRA_VERT_ACCEL = "vert_accel"
+        const val EXTRA_LAT_ACCEL = "lat_accel"
         const val ACTION_SPEED_UPDATE = "io.github.ntufar.babyonboard.SPEED_UPDATE"
         const val ACTION_EVENT_DETECTED = "io.github.ntufar.babyonboard.EVENT_DETECTED"
         const val ACTION_CRASH_DETECTED = "io.github.ntufar.babyonboard.CRASH_DETECTED"

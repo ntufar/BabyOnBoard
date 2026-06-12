@@ -53,12 +53,19 @@ class TripViewModel @Inject constructor(
     private val _accelHistory = MutableStateFlow<List<Float>>(emptyList())
     val accelHistory: StateFlow<List<Float>> = _accelHistory
 
+    private val _vertAccelHistory = MutableStateFlow<List<Float>>(emptyList())
+    val vertAccelHistory: StateFlow<List<Float>> = _vertAccelHistory
+
+    private val _latAccelHistory = MutableStateFlow<List<Float>>(emptyList())
+    val latAccelHistory: StateFlow<List<Float>> = _latAccelHistory
+
     private val _debugLogs = MutableStateFlow<List<String>>(emptyList())
     val debugLogs: StateFlow<List<String>> = _debugLogs
 
     private var timerJob: Job? = null
     private var receiverRegistered = false
     private var lastSpeedUpdateMs = 0L
+    private var chartUpdateCounter = 0
 
     /** @VisibleForTesting */
     var startTimerOnTripStart = true
@@ -76,7 +83,8 @@ class TripViewModel @Inject constructor(
                     val speed = intent.getDoubleExtra(TripForegroundService.EXTRA_SPEED, 0.0)
                     val longAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_LONG_ACCEL, 0.0)
                     val vertAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_VERT_ACCEL, 0.0)
-                    updateTripWithSpeed(speed, longAccel, vertAccel)
+                    val latAccel = intent.getDoubleExtra(TripForegroundService.EXTRA_LAT_ACCEL, 0.0)
+                    updateTripWithSpeed(speed, longAccel, vertAccel, latAccel)
                 }
                 TripForegroundService.ACTION_DEBUG_LOG -> {
                     val msg = intent.getStringExtra(TripForegroundService.EXTRA_DEBUG_MESSAGE) ?: return
@@ -145,7 +153,10 @@ class TripViewModel @Inject constructor(
             _currentSpeed.value = 0.0
             _speedHistory.value = emptyList()
             _accelHistory.value = emptyList()
+            _vertAccelHistory.value = emptyList()
+            _latAccelHistory.value = emptyList()
             lastSpeedUpdateMs = 0L
+            chartUpdateCounter = 0
             if (startTimerOnTripStart) startTimer()
             registerSensorReceiver()
             startForegroundService(trip.id, babyMode, sensitivity.name)
@@ -219,7 +230,7 @@ class TripViewModel @Inject constructor(
         }
     }
 
-    private fun updateTripWithSpeed(speedKmh: Double, longAccel: Double = 0.0, @Suppress("UNUSED_PARAMETER") vertAccel: Double = 0.0) {
+    private fun updateTripWithSpeed(speedKmh: Double, longAccel: Double = 0.0, vertAccel: Double = 0.0, latAccel: Double = 0.0) {
         val trip = _currentTrip.value ?: run {
             addDebugLog("VM: speed update dropped — no active trip")
             return
@@ -228,8 +239,13 @@ class TripViewModel @Inject constructor(
             addDebugLog("VM: first speed update received (${speedKmh.toInt()} km/h)")
         }
         _currentSpeed.value = speedKmh
-        _speedHistory.value = (_speedHistory.value + speedKmh.toFloat()).takeLast(60)
-        _accelHistory.value = (_accelHistory.value + longAccel.toFloat()).takeLast(60)
+        chartUpdateCounter++
+        if (chartUpdateCounter % 2 == 0) {
+            _speedHistory.value = (_speedHistory.value + speedKmh.toFloat()).takeLast(60)
+            _accelHistory.value = (_accelHistory.value + longAccel.toFloat()).takeLast(60)
+            _vertAccelHistory.value = (_vertAccelHistory.value + vertAccel.toFloat()).takeLast(60)
+            _latAccelHistory.value = (_latAccelHistory.value + latAccel.toFloat()).takeLast(60)
+        }
         val now = System.currentTimeMillis()
         val dtSeconds = if (lastSpeedUpdateMs > 0) (now - lastSpeedUpdateMs) / 1000.0 else 0.0
         lastSpeedUpdateMs = now

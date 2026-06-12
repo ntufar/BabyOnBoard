@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.0.26] - 2026-06-13
+
+### Added
+- **Lateral and vertical acceleration charts in Live Telemetry**: Two new sparkline charts now appear below the existing speed and longitudinal acceleration graphs, showing lateral (cornering) and vertical acceleration in real time.
+- **Dead reckoning speed when GPS is unavailable**: When GPS signal is lost (e.g. inside a metro/tunnel), the service now integrates longitudinal accelerometer data over time to estimate speed and distance rather than falling back to zero. Speed resets to GPS-reported value as soon as signal returns.
+
+### Changed
+- **Live telemetry lines are thicker**: Sparkline stroke width increased from 2 px to 4 px for better legibility.
+- **Chart updates at half the sensor rate**: Telemetry history points are added every other sensor frame (~25 Hz instead of ~50 Hz), halving the scroll speed of the charts.
+- **Duration box unified with Speed/Score row**: The elapsed time card is now the same height as the Speed and Score cards — all three sit in a single equal-width row instead of the duration card spanning the full width above them.
+
+### Fixed
+- **Debug log not scrollable**: The debug log panel now uses a bounded scrollable list that auto-scrolls to the newest entry instead of being clipped when it overflows the screen.
+
 ## [0.0.25] - 2026-06-11
 
 ### Fixed
