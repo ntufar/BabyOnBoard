@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.27] - 2026-06-13
+
+### Fixed
+- **Duration text wrapping in header row**: Reduced duration card text from `headlineLarge` (32sp) to `titleLarge` (22sp) with `maxLines = 1` so "00:38" renders on a single line in the 1/3-width card.
+
 ## [0.0.26] - 2026-06-13
 
 ### Added

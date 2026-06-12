@@ -76,8 +76,9 @@ fun LiveTripScreen(
                 ) {
                     Text(
                         text = formatDuration(elapsed),
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.ExtraBold
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.ExtraBold,
+                        maxLines = 1
                     )
                     Text(
                         text = "Duration",
