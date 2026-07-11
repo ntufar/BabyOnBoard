@@ -1,5 +1,7 @@
 # Improvement Ideas & New Features — Technical Specifications
 
+> **Round 2:** a second pass with newly found bugs and additional features (sections 9–14) lives in [improvement-ideas-v2.md](improvement-ideas-v2.md).
+
 Extensive, code-grounded backlog of improvements and new features. Each item states the motivation, a concrete technical design against the current codebase, affected files, and a priority/effort estimate. Cross-references `features.md` item numbers (`#n`) where one exists.
 
 Priorities: **P0** correctness/safety of the core product · **P1** high user value · **P2** valuable, not urgent · **P3** exploratory / v1.2+.
