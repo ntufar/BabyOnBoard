@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.0.28] - 2026-07-22
+
+### Changed
+- **Target Android 16 (API 36)**: Bumped `compileSdk`/`targetSdk` from 35 to 36 to comply with Google Play's target API level policy (closes #3).
+
 ## [0.0.27] - 2026-06-13
 
 ### Fixed
